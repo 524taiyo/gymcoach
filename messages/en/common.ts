@@ -67,6 +67,7 @@ export const common = {
     english: 'English',
     french: 'French',
     russian: 'Russian',
+    japanese: 'Japanese',
   },
   theme: {
     dark: 'Dark',

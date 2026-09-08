@@ -1,8 +1,8 @@
-export const locales = ['en', 'fr', 'ru'] as const;
+export const locales = ['en', 'fr', 'ru', 'ja'] as const;
 
 export type Locale = (typeof locales)[number];
 
-export const defaultLocale: Locale = 'en';
+export const defaultLocale: Locale = 'ja';
 export const localeCookieName = 'gymcoach.locale';
 export const localeCookieMaxAge = 60 * 60 * 24 * 365;
 
@@ -14,4 +14,5 @@ export const localeLabels: Record<Locale, string> = {
   en: 'English',
   fr: 'Français',
   ru: 'Русский',
+  ja: '日本語',
 };
