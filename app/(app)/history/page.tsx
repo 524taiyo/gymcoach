@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { ChevronRight } from 'lucide-react';
-import { CalendarIcon, HistoryIcon } from '@/components/icons';
+import { CalendarIcon } from '@/components/icons';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -87,7 +87,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <PageHeader icon={HistoryIcon} title={t('title')} />
+        <PageHeader illustration="history" title={t('title')} />
 
         <HistoryFilters
           programs={programs}
@@ -104,7 +104,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
             </Card>
           ) : (
             <EmptyState
-              icon={HistoryIcon}
+              illustration="history"
               title={t('emptyTitle')}
               description={t('emptyDescription')}
               action={{ label: t('firstSession'), href: '/session/new' }}

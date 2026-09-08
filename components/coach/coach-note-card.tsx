@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { MessageSquarePlus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { COACH_NOTE_MAX_LEN } from '@/lib/schemas/profile';
+import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
   initialNote: string | null;
@@ -72,12 +72,10 @@ export function CoachNoteCard({ initialNote }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <MessageSquarePlus className="size-4 text-primary-ink" />
+          <Illustration name="notes" size={22} />
           <h2 className="text-base font-semibold">{t('title')}</h2>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {t('description')}
-        </p>
+        <p className="text-xs text-muted-foreground">{t('description')}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Textarea
@@ -105,11 +103,7 @@ export function CoachNoteCard({ initialNote }: Props) {
             >
               {t('clear')}
             </Button>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={busy || overLimit || !dirty}
-            >
+            <Button type="button" onClick={handleSave} disabled={busy || overLimit || !dirty}>
               {t('save')}
             </Button>
           </div>

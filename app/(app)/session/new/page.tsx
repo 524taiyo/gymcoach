@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ReadinessCheckin } from '@/components/session/readiness-checkin';
 import { WorkoutStartList } from '@/components/session/workout-start-list';
 import { getTrainingDisplayName } from '@/i18n/training-names';
+import { IllustrationTile } from '@/components/brand/illustration';
 
 const DAY_KEYS = [
   'monday',
@@ -55,7 +56,10 @@ export default async function NewSessionPage() {
         </Button>
 
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('startTitle')}</h1>
+          <div className="flex items-center gap-3">
+            <IllustrationTile name="workout" size={44} />
+            <h1 className="text-2xl font-bold tracking-tight">{t('startTitle')}</h1>
+          </div>
           {activeProgram ? (
             <p className="text-sm text-muted-foreground">
               {t('activeProgram', {

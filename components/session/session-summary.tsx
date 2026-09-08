@@ -15,6 +15,7 @@ import { formatWeight } from '@/lib/units';
 import { detectPRs, type PRType } from '@/lib/records';
 import { formatCardioSet, formatPace, formatSpeed } from '@/lib/cardio';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { Illustration } from '@/components/brand/illustration';
 
 // Prior (previous-session) non-warmup sets per exerciseId, used as the PR
 // baseline. Same source as the in-session badge (getLastPerformances): a PR
@@ -168,7 +169,10 @@ export function SessionSummary({
           <span className="ml-1">{t('back')}</span>
         </Button>
 
-        <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        <div className="flex items-center gap-3">
+          <Illustration name="complete" size={40} />
+          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        </div>
 
         <div className="grid grid-cols-3 gap-3">
           <Stat label={t('duration')} value={t('minutes', { count: durationMin })} />

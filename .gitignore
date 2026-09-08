@@ -66,3 +66,6 @@ docs/media/raw/
 # Prisma 7 generated client (run `prisma generate`)
 /prisma/generated/
 .neon
+
+# Source illustrations (large PNGs); the web assets built from them live in public/brand.
+icon/アイコン/

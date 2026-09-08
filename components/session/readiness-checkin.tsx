@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { HeartPulse } from 'lucide-react';
 import { toast } from 'sonner';
 import type { MuscleGroup } from '@/lib/prisma-client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { readinessCheckinInputSchema } from '@/lib/schemas/readiness';
 import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
+import { Illustration } from '@/components/brand/illustration';
 
 // Optional, skippable pre-session readiness check-in (issue #38). Adds no
 // friction: it is collapsed by default behind a single tap and never blocks
@@ -104,10 +104,8 @@ export function ReadinessCheckin() {
         className="self-start"
         onClick={() => setOpen(true)}
       >
-        <HeartPulse className="size-4" />
-        <span className="ml-2">
-          {saved ? t('update') : t('open')}
-        </span>
+        <Illustration name="recovery" size={22} />
+        <span className="ml-2">{saved ? t('update') : t('open')}</span>
       </Button>
     );
   }
@@ -116,9 +114,7 @@ export function ReadinessCheckin() {
     <Card>
       <CardHeader className="pb-2">
         <h2 className="text-base font-semibold">{t('title')}</h2>
-        <p className="text-xs text-muted-foreground">
-          {t('description')}
-        </p>
+        <p className="text-xs text-muted-foreground">{t('description')}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <ScaleRow label={t('overall')} value={readiness} onChange={setReadiness} />
@@ -140,9 +136,7 @@ export function ReadinessCheckin() {
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 {t('soreness')}
               </Label>
-              <p className="text-xs text-muted-foreground">
-                {t('sorenessDescription')}
-              </p>
+              <p className="text-xs text-muted-foreground">{t('sorenessDescription')}</p>
               <div className="flex flex-col gap-3">
                 {MUSCLE_GROUPS.map((group) => (
                   <SorenessRow
@@ -174,12 +168,7 @@ export function ReadinessCheckin() {
         )}
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setOpen(false)}
-            disabled={saving}
-          >
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
             {t('skip')}
           </Button>
           <Button type="button" onClick={submit} disabled={saving}>
@@ -202,9 +191,7 @@ function ScaleRow({
 }) {
   return (
     <div className="space-y-2">
-      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </Label>
+      <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
       <div className="grid grid-cols-5 gap-2">
         {SCALE.map((n) => (
           <Button

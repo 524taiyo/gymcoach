@@ -28,7 +28,7 @@ export default async function NewProgramPage() {
           </Link>
         </Button>
 
-        <PageHeader title={t('newProgram')} description={t('newProgramDescription')} />
+        <PageHeader illustration="program" title={t('newProgram')} description={t('newProgramDescription')} />
 
         <Card>
           <CardHeader className="pb-3">

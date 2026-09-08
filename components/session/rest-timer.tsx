@@ -10,6 +10,7 @@ import { playRestEndBeep } from '@/lib/sound';
 import { formatWeight } from '@/lib/units';
 import type { WeightUnit } from '@/lib/prisma-client';
 import type { IntraSetRecommendation } from '@/lib/intra-set-autoregulation';
+import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
   endsAt: number;
@@ -61,6 +62,7 @@ export function RestTimer({
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-8">
+        <Illustration name="rest-time" size={56} />
         <p className="text-xs uppercase tracking-wider text-muted-foreground">{t('title')}</p>
 
         <div className="relative">

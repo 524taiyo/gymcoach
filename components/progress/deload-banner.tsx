@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormatter, useTranslations } from 'next-intl';
-import { BatteryCharging, BatteryLow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { DeloadReason } from '@/lib/deload';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
   reasons: DeloadReason[];
@@ -76,7 +76,7 @@ export function DeloadBanner({ reasons, deloadUntil }: Props) {
       <Card className="border-emerald-500/50 bg-emerald-500/5">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <BatteryCharging className="size-4 text-emerald-600" />
+            <Illustration name="recovery" size={22} />
             <h2 className="text-base font-semibold">{t('activeTitle')}</h2>
           </div>
         </CardHeader>
@@ -96,7 +96,7 @@ export function DeloadBanner({ reasons, deloadUntil }: Props) {
     <Card className="border-amber-500/50 bg-amber-500/5">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <BatteryLow className="size-4 text-amber-600" />
+          <Illustration name="recovery" size={22} />
           <h2 className="text-base font-semibold">{t('dueTitle')}</h2>
         </div>
       </CardHeader>

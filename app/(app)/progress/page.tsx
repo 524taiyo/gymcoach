@@ -1,4 +1,3 @@
-import { StatsIcon } from '@/components/icons';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
@@ -226,7 +225,7 @@ export default async function ProgressPage(
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <PageHeader icon={StatsIcon} title={t('title')} />
+        <PageHeader illustration="progress" title={t('title')} />
 
         <BodyweightCard
           entries={bodyweightEntries.map((e) => ({
@@ -239,7 +238,7 @@ export default async function ProgressPage(
 
         {exercisesWithSets.length === 0 ? (
           <EmptyState
-            icon={StatsIcon}
+            illustration="progress"
             title={t('emptyTitle')}
             description={t('emptyDescription', { weeks: RECENT_WEEKS })}
             action={{ label: t('firstSession'), href: '/session/new' }}

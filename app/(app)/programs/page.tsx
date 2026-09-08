@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Wand2 } from 'lucide-react';
-import { PlusIcon, WorkoutIcon } from '@/components/icons';
+import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/ui/page-header';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
@@ -28,7 +28,7 @@ export default async function ProgramsPage() {
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
         <PageHeader
-          icon={WorkoutIcon}
+          illustration="program"
           title={t('title')}
           description={t('count', { count: programs.length })}
           actions={
@@ -51,7 +51,7 @@ export default async function ProgramsPage() {
 
         {programs.length === 0 ? (
           <EmptyState
-            icon={WorkoutIcon}
+            illustration="program"
             title={t('noProgram')}
             description={t('noProgramDescription')}
             action={{ label: t('create'), href: '/programs/new' }}

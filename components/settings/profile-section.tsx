@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, Save } from 'lucide-react';
-import { ProfileIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import type { Sex, TrainingGoal, WeightUnit } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Illustration } from '@/components/brand/illustration';
 import {
   Select,
   SelectContent,
@@ -52,13 +52,9 @@ export function ProfileSection({ initial }: Props) {
   const [displayName, setDisplayName] = useState(initial.displayName ?? '');
   const [bodyweight, setBodyweight] = useState(numOrEmpty(initial.bodyweight));
   const [heightCm, setHeightCm] = useState(numOrEmpty(initial.heightCm));
-  const [weeklyFrequency, setWeeklyFrequency] = useState(
-    numOrEmpty(initial.weeklyFrequency),
-  );
+  const [weeklyFrequency, setWeeklyFrequency] = useState(numOrEmpty(initial.weeklyFrequency));
   const [sex, setSex] = useState<Sex | undefined>(initial.sex ?? undefined);
-  const [goal, setGoal] = useState<TrainingGoal | undefined>(
-    initial.goal ?? undefined,
-  );
+  const [goal, setGoal] = useState<TrainingGoal | undefined>(initial.goal ?? undefined);
   const [unit, setUnit] = useState<WeightUnit>(initial.unit);
   const [pending, setPending] = useState(false);
 
@@ -69,9 +65,7 @@ export function ProfileSection({ initial }: Props) {
   }
 
   const isValid =
-    rangeOk(bodyweight, 20, 300) &&
-    rangeOk(heightCm, 100, 250) &&
-    rangeOk(weeklyFrequency, 1, 14);
+    rangeOk(bodyweight, 20, 300) && rangeOk(heightCm, 100, 250) && rangeOk(weeklyFrequency, 1, 14);
 
   async function save() {
     if (!isValid) {
@@ -111,12 +105,10 @@ export function ProfileSection({ initial }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <ProfileIcon className="size-5" />
+          <Illustration name="profile" size={24} />
           <h2 className="text-base font-semibold">{t('title')}</h2>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {t('description')}
-        </p>
+        <p className="text-xs text-muted-foreground">{t('description')}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="space-y-1.5">
@@ -245,23 +237,12 @@ export function ProfileSection({ initial }: Props) {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            {t('unitDescription')}
-          </p>
+          <p className="text-xs text-muted-foreground">{t('unitDescription')}</p>
         </div>
 
         <div>
-          <Button
-            type="button"
-            onClick={save}
-            disabled={pending || !isValid}
-            className="min-h-tap"
-          >
-            {pending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
+          <Button type="button" onClick={save} disabled={pending || !isValid} className="min-h-tap">
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             <span className="ml-2">{common('actions.save')}</span>
           </Button>
         </div>

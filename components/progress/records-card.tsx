@@ -1,9 +1,9 @@
-import { Trophy } from 'lucide-react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import type { WeightUnit } from '@/lib/prisma-client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { formatWeight } from '@/lib/units';
 import { getExerciseDisplayName } from '@/i18n/exercise-names';
+import { Illustration } from '@/components/brand/illustration';
 
 // One exercise's all-time bests, serialized at the Server Component boundary.
 // Weights are stored in kg (bodyweight-effective load already applied upstream)
@@ -43,7 +43,7 @@ export function RecordsCard({ records, unit }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Trophy className="size-4 text-amber-500" />
+          <Illustration name="pr" size={22} />
           <h2 className="text-base font-semibold">{t('title')}</h2>
         </div>
         <p className="text-xs text-muted-foreground">{t('description')}</p>

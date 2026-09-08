@@ -1,13 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Check, Circle, CircleDot, CloudOff, Loader2, Trash2, Trophy } from 'lucide-react';
+import { Check, Circle, CircleDot, CloudOff, Loader2, Trash2 } from 'lucide-react';
 import type { Exercise, ProgramExercise } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { PendingSet } from '@/lib/indexeddb';
 import { detectPRs, type PRType } from '@/lib/records';
 import { formatCardioSet } from '@/lib/cardio';
+import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
   programExercise: ProgramExercise & { exercise: Exercise };
@@ -66,15 +67,7 @@ export function SetsList({ programExercise, sets, isInputActive, onDeleteSet, pr
   );
 }
 
-function RowDone({
-  set,
-  prs,
-  onDelete,
-}: {
-  set: PendingSet;
-  prs: PRType[];
-  onDelete: () => void;
-}) {
+function RowDone({ set, prs, onDelete }: { set: PendingSet; prs: PRType[]; onDelete: () => void }) {
   const t = useTranslations('session.setsList');
   const weightLabel = set.weight === 0 ? t('bodyweight') : `${set.weight} kg`;
   // Cardio sets (issue #133) render as duration/distance, never weight x reps.
@@ -100,7 +93,7 @@ function RowDone({
         </span>
         {prs.map((pr) => (
           <Badge key={pr} className="gap-1 text-xs" title={t(PR_TITLE_KEYS[pr])}>
-            <Trophy className="size-3" />
+            <Illustration name="pr" size={14} />
             {t(PR_LABEL_KEYS[pr])}
           </Badge>
         ))}
@@ -127,8 +120,7 @@ function SyncIcon({ status }: { status: PendingSet['status'] }) {
   if (status === 'synced') return <Check className="size-4 flex-shrink-0 text-primary-ink" />;
   if (status === 'syncing')
     return <Loader2 className="size-4 flex-shrink-0 animate-spin text-muted-foreground" />;
-  if (status === 'failed')
-    return <CloudOff className="size-4 flex-shrink-0 text-amber-500" />;
+  if (status === 'failed') return <CloudOff className="size-4 flex-shrink-0 text-amber-500" />;
   // 'pending'
   return <CloudOff className="size-4 flex-shrink-0 text-muted-foreground" />;
 }

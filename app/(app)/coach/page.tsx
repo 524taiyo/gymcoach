@@ -1,4 +1,3 @@
-import { CoachIcon } from '@/components/icons';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
@@ -85,7 +84,7 @@ export default async function CoachPage() {
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <PageHeader icon={CoachIcon} title={t('title')} description={t('description')} />
+        <PageHeader illustration="coach" title={t('title')} description={t('description')} />
 
         <CoachContextCard summary={coachContext} />
 

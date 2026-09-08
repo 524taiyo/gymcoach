@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { BODY_PARTS, bodyPartOf, type BodyPart } from '@/lib/body-parts';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
   catalog: Exercise[];
@@ -97,7 +98,10 @@ export function ExercisePicker({ catalog, value, onChange, inputId }: Props) {
         className="max-h-52 overflow-y-auto rounded-lg border"
       >
         {visible.length === 0 ? (
-          <p className="p-3 text-sm text-muted-foreground">{t('noMatch')}</p>
+          <div className="flex flex-col items-center gap-2 p-4 text-center">
+            <Illustration name="search" size={36} />
+            <p className="text-sm text-muted-foreground">{t('noMatch')}</p>
+          </div>
         ) : (
           visible.map(({ ex, label }) => {
             const active = ex.id === value;

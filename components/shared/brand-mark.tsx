@@ -1,24 +1,31 @@
-import { WorkoutIcon } from '@/components/icons';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface BrandMarkProps {
-  // Tile size in Tailwind spacing units: 'sm' for the header, 'lg' for auth.
+  // 'sm' for the header, 'lg' for the auth screens.
   size?: 'sm' | 'lg';
   className?: string;
 }
 
-// The GymCoach logo tile: navy dumbbell on a lime rounded square.
+// The GymCoach app tile as drawn in icon/アイコン (lime dumbbell + play mark on
+// an off-white rounded square), built to public/brand/logo-tile.png.
 export function BrandMark({ size = 'sm', className }: BrandMarkProps) {
+  const px = size === 'sm' ? 28 : 64;
   return (
-    <span
+    <Image
+      src="/brand/logo-tile.png"
+      alt=""
+      width={px}
+      height={px}
+      priority
       aria-hidden="true"
+      draggable={false}
+      unoptimized
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.15),0_1px_2px_rgba(24,33,47,0.22)]',
-        size === 'sm' ? 'size-7 rounded-lg' : 'size-12 rounded-2xl',
+        'shrink-0 select-none ring-1 ring-inset ring-border/60',
+        size === 'sm' ? 'rounded-lg' : 'rounded-2xl shadow-card',
         className,
       )}
-    >
-      <WorkoutIcon className={size === 'sm' ? 'size-4' : 'size-7'} strokeWidth={2} />
-    </span>
+    />
   );
 }

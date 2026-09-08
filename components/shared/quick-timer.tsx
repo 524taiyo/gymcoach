@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { playRestEndBeep } from '@/lib/sound';
 import { cn } from '@/lib/utils';
+import { Illustration } from '@/components/brand/illustration';
 
 const PRESETS = [60, 90, 120, 180] as const;
 const DEFAULT_SEC = 90;
@@ -70,7 +71,11 @@ export function QuickTimer() {
 
   const pause = () => {
     if (timer.kind !== 'running') return;
-    setTimer({ kind: 'paused', totalSec: timer.totalSec, remainingMs: Math.max(0, timer.endsAt - Date.now()) });
+    setTimer({
+      kind: 'paused',
+      totalSec: timer.totalSec,
+      remainingMs: Math.max(0, timer.endsAt - Date.now()),
+    });
   };
 
   const resume = () => {
@@ -88,7 +93,11 @@ export function QuickTimer() {
     if (timer.kind === 'running') {
       setTimer({ ...timer, totalSec: timer.totalSec + 30, endsAt: timer.endsAt + 30_000 });
     } else if (timer.kind === 'paused') {
-      setTimer({ ...timer, totalSec: timer.totalSec + 30, remainingMs: timer.remainingMs + 30_000 });
+      setTimer({
+        ...timer,
+        totalSec: timer.totalSec + 30,
+        remainingMs: timer.remainingMs + 30_000,
+      });
     } else {
       setTimer({ kind: 'idle', totalSec: timer.totalSec + 30 });
     }
@@ -104,7 +113,8 @@ export function QuickTimer() {
           size={active ? 'sm' : 'icon'}
           aria-label={active ? t('running', { seconds: remainingSec }) : t('open')}
           className={cn(
-            active && 'h-10 gap-1.5 rounded-full bg-primary/10 px-2.5 text-primary-ink hover:bg-primary/15',
+            active &&
+              'h-10 gap-1.5 rounded-full bg-primary/10 px-2.5 text-primary-ink hover:bg-primary/15',
             timer.kind === 'paused' && 'opacity-70',
           )}
         >
@@ -119,7 +129,7 @@ export function QuickTimer() {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <TimerIcon className="size-5 text-primary-ink" />
+            <Illustration name="timer" size={28} />
             {t('title')}
           </DialogTitle>
           <DialogDescription className="sr-only">{t('title')}</DialogDescription>
@@ -133,7 +143,9 @@ export function QuickTimer() {
             )}
           >
             <span data-testid="quick-timer-remaining">{remainingSec}</span>
-            <span className="ml-1.5 text-2xl font-medium text-muted-foreground">{t('seconds')}</span>
+            <span className="ml-1.5 text-2xl font-medium text-muted-foreground">
+              {t('seconds')}
+            </span>
           </p>
 
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -189,7 +201,12 @@ export function QuickTimer() {
                 <span className="ml-1">{t('start')}</span>
               </Button>
             )}
-            <Button variant="outline" className="h-12" onClick={reset} disabled={timer.kind === 'idle'}>
+            <Button
+              variant="outline"
+              className="h-12"
+              onClick={reset}
+              disabled={timer.kind === 'idle'}
+            >
               <RotateCcw className="size-4" />
               <span className="ml-1">{t('reset')}</span>
             </Button>

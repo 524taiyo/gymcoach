@@ -1,4 +1,3 @@
-import { SettingsIcon } from '@/components/icons';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTranslations } from 'next-intl/server';
 import { requireSession } from '@/lib/auth';
@@ -54,7 +53,7 @@ export default async function SettingsPage() {
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <PageHeader icon={SettingsIcon} title={t('title')} />
+        <PageHeader illustration="setting" title={t('title')} />
 
         <Card>
           <CardHeader className="pb-3">

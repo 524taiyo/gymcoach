@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { RotateCw } from 'lucide-react';
-import { CoachIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { IllustrationTile } from '@/components/brand/illustration';
 
 interface DailyTipResponse {
   text: string;
@@ -72,9 +72,7 @@ export function DailyTipCard() {
   return (
     <Card className="animate-in-up border-primary/20 bg-[linear-gradient(135deg,hsl(var(--primary)/0.08),hsl(var(--card))_60%)]">
       <CardContent className="flex items-start gap-3 p-4 sm:p-5">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[inset_0_-1px_0_rgba(0,0,0,0.15)]">
-          <CoachIcon className="size-5" strokeWidth={2} />
-        </div>
+        <IllustrationTile name="coach" size={40} />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-ink">
             {t('label')}
