@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Flag, MessageSquare, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag, MessageSquare } from 'lucide-react';
+import { CloseIcon } from '@/components/icons';
 import type {
   Exercise,
   Program,
@@ -495,7 +496,7 @@ export function SessionRunner({
   return (
     <main className="flex flex-1 flex-col">
       {/* Sticky header with progress and exit button */}
-      <div className="sticky top-[97px] z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-[var(--app-header-h,97px)] z-10 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-xs text-muted-foreground">{trainingName(workout.name)}</p>
@@ -519,13 +520,13 @@ export function SessionRunner({
           </div>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             asChild
-            className="text-muted-foreground"
+            className="size-11 shrink-0 text-muted-foreground"
             aria-label={t('quit')}
           >
             <Link href="/">
-              <X className="size-4" />
+              <CloseIcon className="size-5" />
             </Link>
           </Button>
         </div>
@@ -603,17 +604,18 @@ export function SessionRunner({
             size="sm"
             onClick={goPrev}
             disabled={currentIdx === 0 || mode.kind !== 'input'}
-            className="min-h-tap"
+            className="min-h-tap flex-1 px-2 sm:flex-none sm:px-3"
           >
             <ChevronLeft className="size-4" />
-            <span className="ml-1">{t('previous')}</span>
+            <span className="ml-1 hidden sm:inline">{t('previous')}</span>
+            <span className="sr-only sm:hidden">{t('previous')}</span>
           </Button>
 
           <Button
             variant="default"
             size="sm"
             onClick={() => setMode({ kind: 'summary' })}
-            className="min-h-tap"
+            className="min-h-tap flex-[2] sm:flex-none"
           >
             <Flag className="size-4" />
             <span className="ml-2">{t('finish')}</span>
@@ -624,9 +626,10 @@ export function SessionRunner({
             size="sm"
             onClick={goNext}
             disabled={navNextIdx == null || mode.kind !== 'input'}
-            className="min-h-tap"
+            className="min-h-tap flex-1 px-2 sm:flex-none sm:px-3"
           >
-            <span className="mr-1">{t('next')}</span>
+            <span className="mr-1 hidden sm:inline">{t('next')}</span>
+            <span className="sr-only sm:hidden">{t('next')}</span>
             <ChevronRight className="size-4" />
           </Button>
         </div>

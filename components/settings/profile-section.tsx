@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Loader2, Save, User } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
+import { ProfileIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import type { Sex, TrainingGoal, WeightUnit } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,7 @@ export function ProfileSection({ initial }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <User className="size-5" />
+          <ProfileIcon className="size-5" />
           <h2 className="text-base font-semibold">{t('title')}</h2>
         </div>
         <p className="text-xs text-muted-foreground">

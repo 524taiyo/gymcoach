@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { Plus, Wand2 } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
+import { PlusIcon, WorkoutIcon } from '@/components/icons';
+import { PageHeader } from '@/components/ui/page-header';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
@@ -24,28 +26,27 @@ export default async function ProgramsPage() {
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t('count', { count: programs.length })}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="min-h-tap">
-              <Link href="/programs/generate">
-                <Wand2 className="size-4" />
-                <span className="ml-2">{t('generateWithAi')}</span>
-              </Link>
-            </Button>
-            <Button asChild className="min-h-tap">
-              <Link href="/programs/new">
-                <Plus className="size-4" />
-                <span className="ml-2">{t('create')}</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          icon={WorkoutIcon}
+          title={t('title')}
+          description={t('count', { count: programs.length })}
+          actions={
+            <>
+              <Button asChild variant="outline" className="flex-1 sm:flex-none">
+                <Link href="/programs/generate">
+                  <Wand2 className="size-4" />
+                  <span className="ml-1">{t('generateWithAi')}</span>
+                </Link>
+              </Button>
+              <Button asChild className="flex-1 sm:flex-none">
+                <Link href="/programs/new">
+                  <PlusIcon className="size-4" />
+                  <span className="ml-1">{t('create')}</span>
+                </Link>
+              </Button>
+            </>
+          }
+        />
 
         {programs.length === 0 ? (
           <Card>

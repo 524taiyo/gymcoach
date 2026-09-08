@@ -13,6 +13,12 @@ export const dashboard = {
   activeProgram: 'Active program: {name}',
   chooseSession: 'Choose a session',
   programSessions: 'Program sessions',
+  dailyTip: {
+    label: 'Coach\'s word for today',
+    loading: 'Your coach is thinking...',
+    refresh: 'Another one',
+    error: 'The coach is unavailable right now.',
+  },
   insight: {
     deloadTitle: 'Recovery may be due',
     stalledTitle: '{count, plural, one {A lift has stalled} other {# lifts have stalled}}',

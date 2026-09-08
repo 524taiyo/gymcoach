@@ -236,7 +236,7 @@ export function ExerciseCard({
                 onClick={() => setHelpOpen((v) => !v)}
                 aria-label={t('suggestionHelp')}
                 aria-expanded={helpOpen}
-                className="text-muted-foreground hover:text-foreground"
+                className="-m-2 flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
               >
                 <HelpCircle className="size-4" />
               </button>

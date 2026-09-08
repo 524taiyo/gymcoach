@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ChevronLeft, Plus } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
+import { PlusIcon } from '@/components/icons';
 import type { Exercise, Program, ProgramExercise, Workout } from '@/lib/prisma-client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -105,7 +106,7 @@ export function ProgramDetailView({ program, catalog }: Props) {
           onClick={() => setAddWorkoutOpen(true)}
           className="min-h-tap"
         >
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           <span className="ml-2">{t('addSession')}</span>
         </Button>
       </div>

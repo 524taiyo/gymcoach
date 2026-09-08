@@ -253,6 +253,9 @@ interface ProgramSummary {
   phase: string;
   workouts: Array<{
     name: string;
+    // Planned weekday, 1 (Monday) .. 7 (Sunday), or null when the workout is
+    // not pinned to a day. Lets the home one-liner name today's session.
+    dayOfWeek: number | null;
     exercises: Array<{
       exerciseName: string;
       targetSets: number;
@@ -601,6 +604,7 @@ async function fetchActiveProgram(userId: string): Promise<ProgramSummary | null
     phase: program.phase,
     workouts: program.workouts.map((w) => ({
       name: w.name,
+      dayOfWeek: w.dayOfWeek ?? null,
       exercises: w.exercises.map((pe) => ({
         exerciseName: pe.exercise.name,
         targetSets: pe.targetSets,

@@ -45,6 +45,7 @@ model User {
   exercises         Exercise[]
   conversations     Conversation[]
   readinessCheckins ReadinessCheckin[]
+  dailyTips         DailyTip[]
   exerciseGoals     ExerciseGoal[]
   bodyweightEntries BodyweightEntry[]
   bodyMeasurements  BodyMeasurement[]
@@ -507,6 +508,24 @@ model CoachSession {
   response  String    @db.Text
   appliedAt DateTime?
   createdAt DateTime  @default(now())
+}
+
+// The coach's one-line greeting shown on the home page. One row per user, per
+// local calendar day (YYYY-MM-DD as the client sees it), per locale, so the
+// LLM is called at most once a day per language and every later home load is
+// a plain read. Regenerating on demand overwrites the row.
+model DailyTip {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String
+  locale    String
+  text      String
+  modelUsed String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, day, locale])
 }
 
 // Pre-session readiness / soreness check-in (issue #38). Additive, optional:

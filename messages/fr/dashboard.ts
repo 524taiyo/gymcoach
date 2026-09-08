@@ -16,6 +16,12 @@ export const dashboard = {
   activeProgram: 'Programme actif : {name}',
   chooseSession: 'Choisir une séance',
   programSessions: 'Séances du programme',
+  dailyTip: {
+    label: 'Le mot du coach',
+    loading: 'Votre coach réfléchit...',
+    refresh: 'Un autre',
+    error: 'Le coach est indisponible pour le moment.',
+  },
   insight: {
     deloadTitle: 'Une récupération semble nécessaire',
     stalledTitle: '{count, plural, one {Un exercice stagne} other {# exercices stagnent}}',

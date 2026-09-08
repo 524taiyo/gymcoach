@@ -397,11 +397,11 @@ export function ImportSection() {
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <div className="flex items-end gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
             <Label htmlFor="import-format">{t('source')}</Label>
             <Select value={format} onValueChange={(v) => switchFormat(v as ImportFormat)}>
-              <SelectTrigger id="import-format" className="h-9 w-28">
+              <SelectTrigger id="import-format" className="h-10 w-32 sm:h-9 sm:w-28">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -418,7 +418,7 @@ export function ImportSection() {
             <div className="space-y-1">
               <Label htmlFor="strong-unit">{t('strongUnit')}</Label>
               <Select value={unit} onValueChange={(v) => setUnit(v as 'KG' | 'LB')}>
-                <SelectTrigger id="strong-unit" className="h-9 w-28">
+                <SelectTrigger id="strong-unit" className="h-10 w-24 sm:h-9 sm:w-28">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -428,7 +428,12 @@ export function ImportSection() {
               </Select>
             </div>
           )}
-          <Button variant="outline" onClick={pickFile} disabled={busy} className="min-h-tap">
+          <Button
+            variant="outline"
+            onClick={pickFile}
+            disabled={busy}
+            className="min-h-tap w-full sm:w-auto"
+          >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
             <span className="ml-2">
               {isFit

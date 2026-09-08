@@ -1,5 +1,8 @@
 import Link from 'next/link';
-import { Dumbbell, Play, AlertCircle, Lightbulb } from 'lucide-react';
+import { Play, AlertCircle, Lightbulb } from 'lucide-react';
+import { HomeIcon } from '@/components/icons';
+import { PageHeader } from '@/components/ui/page-header';
+import { DailyTipCard } from '@/components/dashboard/daily-tip-card';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
@@ -52,13 +55,9 @@ export default async function DashboardPage() {
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <Dumbbell className="size-8" />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">GymCoach</h1>
-            <p className="text-xs text-muted-foreground">{session.email}</p>
-          </div>
-        </div>
+        <PageHeader icon={HomeIcon} title="GymCoach" description={session.email} />
+
+        <DailyTipCard />
 
         {insight && (
           <Link href={insight.href} className="block">
@@ -164,7 +163,7 @@ export default async function DashboardPage() {
                             <p className="truncate text-sm font-medium">
                               {getTrainingDisplayName(w.name, locale)}
                             </p>
-                            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                               {day && <Badge variant="secondary">{day}</Badge>}
                               <span>
                                 {common('counts.exercises', { count: w._count.exercises })}

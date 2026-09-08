@@ -14,6 +14,24 @@ import {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Home one-liner, per UI language. The prompt names the target language as
+// "in <Language>", which is what picks the line below.
+const DAILY_TIP_ENGLISH =
+  'Your bench press hit a new best last session, so today is a good day to bring that same focus to your pull-ups.';
+const DAILY_TIP: Record<string, string> = {
+  English: DAILY_TIP_ENGLISH,
+  French:
+    'Ton développé couché a battu ton record à la dernière séance, garde cette concentration sur les tractions aujourd hui.',
+  Russian:
+    'На прошлой тренировке ты обновил рекорд в жиме лёжа, сегодня перенеси этот настрой на подтягивания.',
+  Japanese: '前回のベンチプレスは自己ベスト更新、今日はその集中力を懸垂にも向けていこう。',
+};
+
+function dailyTipFor(system: string): string {
+  const match = /in (English|French|Russian|Japanese)\./.exec(system);
+  return DAILY_TIP[match?.[1] ?? 'English'] ?? DAILY_TIP_ENGLISH;
+}
+
 const DEBRIEF = `## Weekly recap
 
 Solid week: 3 sessions logged, total working volume up about 4% versus last week.
@@ -161,6 +179,7 @@ function cannedResponse(system: string, userText = ''): string {
       ? DEMO_SET_PARSE_CARDIO
       : DEMO_SET_PARSE_STRENGTH;
   }
+  if (system.includes('exactly ONE encouraging sentence')) return dailyTipFor(system); // home one-liner
   if (system.includes('<adjustments>')) return DEBRIEF; // weekly debrief prompt
   if (system.includes('SINGLE JSON object')) return JSON.stringify(DEMO_PROGRAM, null, 2); // program generation prompt
   // In-session chat: the appended payload JSON carries a "currentSession" key

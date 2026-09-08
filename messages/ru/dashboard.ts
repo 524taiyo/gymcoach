@@ -16,6 +16,12 @@ export const dashboard = {
   activeProgram: 'Активная программа: {name}',
   chooseSession: 'Выбрать тренировку',
   programSessions: 'Тренировки программы',
+  dailyTip: {
+    label: 'Слово тренера на сегодня',
+    loading: 'Тренер думает...',
+    refresh: 'Ещё одно',
+    error: 'Тренер сейчас недоступен.',
+  },
   insight: {
     deloadTitle: 'Похоже, пора восстановиться',
     stalledTitle:

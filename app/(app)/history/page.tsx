@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/page-header';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
-import { Calendar, ChevronRight, History as HistoryIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { CalendarIcon, HistoryIcon } from '@/components/icons';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -85,10 +87,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
   return (
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <HistoryIcon className="size-6" />
-          <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
-        </div>
+        <PageHeader icon={HistoryIcon} title={t('title')} />
 
         <HistoryFilters
           programs={programs}
@@ -154,7 +153,7 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
                       <CardContent className="flex items-center justify-between gap-3 p-4">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Calendar className="size-3" />
+                            <CalendarIcon className="size-3" />
                             <span>
                               {format.dateTime(s.startedAt, {
                                 day: '2-digit',

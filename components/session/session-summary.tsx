@@ -294,9 +294,9 @@ function cardioRecap(durationSec: number, distanceM: number, unit: WeightUnit): 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <Card>
-      <CardContent className="flex flex-col items-center justify-center py-4">
+      <CardContent className="flex flex-col items-center justify-center p-3 text-center sm:p-4">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-xl font-semibold">{value}</p>
+        <p className="text-lg font-semibold tabular-nums sm:text-xl">{value}</p>
       </CardContent>
     </Card>
   );

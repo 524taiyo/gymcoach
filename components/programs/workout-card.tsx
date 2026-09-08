@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { MoreHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { PlusIcon } from '@/components/icons';
 import type { Exercise, ProgramExercise, Workout } from '@/lib/prisma-client';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -205,7 +206,7 @@ export function WorkoutCard({ workout, catalog }: Props) {
           className="min-h-tap self-start"
           disabled={catalog.length === 0}
         >
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           <span className="ml-2">{exerciseT('add')}</span>
         </Button>
         {catalog.length === 0 && (

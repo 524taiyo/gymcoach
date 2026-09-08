@@ -80,10 +80,10 @@ function RowDone({
   // Cardio sets (issue #133) render as duration/distance, never weight x reps.
   const isCardio = set.durationSec != null;
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2 last:border-b-0">
-      <div className="flex min-w-0 items-center gap-2">
+    <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-1 last:border-b-0">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
         <SyncIcon status={set.status} />
-        <span className="text-sm font-medium">
+        <span className="whitespace-nowrap text-sm font-medium">
           {t('set', { number: set.setNumber })}
           {set.isWarmup ? t('warmup') : ''}
           {set.isDropSet ? t('drop') : ''}
@@ -115,9 +115,9 @@ function RowDone({
         size="icon"
         onClick={onDelete}
         aria-label={t('delete')}
-        className="size-8 text-muted-foreground hover:text-destructive"
+        className="size-11 shrink-0 text-muted-foreground hover:text-destructive"
       >
-        <Trash2 className="size-3.5" />
+        <Trash2 className="size-4" />
       </Button>
     </div>
   );

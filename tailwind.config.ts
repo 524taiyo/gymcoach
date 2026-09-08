@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import typography from '@tailwindcss/typography';
 
 const config: Config = {
   darkMode: ['class'],
@@ -16,7 +17,27 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: [
+          'var(--font-sans)',
+          'var(--font-sans-jp)',
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'Hiragino Sans',
+          'Noto Sans JP',
+          'sans-serif',
+        ],
+      },
+      boxShadow: {
+        // Hairline elevation for inputs and outline buttons.
+        xs: '0 1px 2px 0 rgb(15 23 42 / 0.04)',
+        // Card surface: a tight contact shadow plus a soft ambient one.
+        card: '0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -8px rgb(15 23 42 / 0.10)',
+      },
       colors: {
+        'border-strong': 'hsl(var(--border-strong))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -73,7 +94,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [typography],
 };
 
 export default config;

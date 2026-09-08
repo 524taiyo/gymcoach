@@ -3,7 +3,8 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { Download, Filter, X } from 'lucide-react';
+import { Download, Filter } from 'lucide-react';
+import { CloseIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -63,7 +64,7 @@ export function HistoryFilters({ programs, selectedProgramId, selectedMonth }: P
         value={selectedProgramId ?? 'all'}
         onValueChange={(v) => update('programId', v === 'all' ? undefined : v)}
       >
-        <SelectTrigger className="h-9 w-auto min-w-[10rem]">
+        <SelectTrigger className="h-10 w-full sm:h-9 sm:w-auto sm:min-w-[10rem]">
           <SelectValue placeholder={t('program')} />
         </SelectTrigger>
         <SelectContent>
@@ -80,7 +81,7 @@ export function HistoryFilters({ programs, selectedProgramId, selectedMonth }: P
         value={selectedMonth ?? 'all'}
         onValueChange={(v) => update('month', v === 'all' ? undefined : v)}
       >
-        <SelectTrigger className="h-9 w-auto min-w-[9rem]">
+        <SelectTrigger className="h-10 w-full sm:h-9 sm:w-auto sm:min-w-[9rem]">
           <SelectValue placeholder={t('month')} />
         </SelectTrigger>
         <SelectContent>
@@ -99,13 +100,20 @@ export function HistoryFilters({ programs, selectedProgramId, selectedMonth }: P
           size="sm"
           onClick={() => startTransition(() => router.push('/history'))}
           disabled={isPending}
+          className="h-10 sm:h-8"
         >
-          <X className="size-4" />
+          <CloseIcon className="size-4" />
           <span className="ml-1">{t('clear')}</span>
         </Button>
       )}
 
-      <Button variant="outline" size="sm" asChild className="ml-auto" title={t('csvTitle')}>
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="ml-auto h-10 sm:h-8"
+        title={t('csvTitle')}
+      >
         <a href={buildCsvHref(selectedProgramId, selectedMonth)} download>
           <Download className="size-4" />
           <span className="ml-1">CSV</span>

@@ -16,6 +16,12 @@ export const dashboard = {
   activeProgram: 'アクティブプログラム: {name}',
   chooseSession: 'セッションを選択',
   programSessions: 'プログラムのセッション',
+  dailyTip: {
+    label: '今日の一言コーチ',
+    loading: 'コーチが考え中...',
+    refresh: 'もう一言',
+    error: '今はコーチと接続できません。',
+  },
   insight: {
     deloadTitle: '回復が必要かもしれません',
     stalledTitle: '{count, plural, one {# つのリフトが停滞中} other {# つのリフトが停滞中}}',

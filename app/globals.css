@@ -30,7 +30,8 @@
     --destructive-foreground: 0 0% 98%;
 
     --border: 220 16% 90%;
-    --input: 220 16% 90%;
+    --border-strong: 220 14% 80%;
+    --input: 220 16% 88%;
     --ring: 239 84% 67%;
 
     --radius: 0.75rem;
@@ -63,7 +64,8 @@
     --destructive-foreground: 210 50% 97%;
 
     --border: 222 35% 18%;
-    --input: 222 35% 18%;
+    --border-strong: 222 30% 28%;
+    --input: 222 35% 20%;
     --ring: 239 84% 67%;
   }
 }
@@ -72,9 +74,18 @@
   * {
     @apply border-border;
   }
+  html {
+    /* Keep iOS from inflating text in landscape / after rotation. */
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01', 'tnum' 0;
+    text-rendering: optimizeLegibility;
+    /* A single wide element must never let the whole page pan sideways on a
+       phone; wide content scrolls inside its own container instead. */
+    overflow-x: clip;
   }
 }
 

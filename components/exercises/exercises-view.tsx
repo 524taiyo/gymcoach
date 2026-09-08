@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Search } from 'lucide-react';
+import { Pencil, Search } from 'lucide-react';
+import { PlusIcon } from '@/components/icons';
 import type { Exercise, MuscleGroup } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +54,7 @@ export function ExercisesView({ exercises }: ExercisesViewProps) {
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="min-h-tap">
-          <Plus className="size-4" />
+          <PlusIcon className="size-4" />
           <span className="ml-2">{common('actions.add')}</span>
         </Button>
       </div>

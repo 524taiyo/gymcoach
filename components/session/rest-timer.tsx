@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { FastForward, Plus } from 'lucide-react';
+import { FastForward } from 'lucide-react';
+import { PlusIcon } from '@/components/icons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { playRestEndBeep } from '@/lib/sound';
@@ -103,7 +104,7 @@ export function RestTimer({
 
         <div className="flex w-full max-w-sm gap-2">
           <Button variant="outline" onClick={onAdd30} className="min-h-tap flex-1">
-            <Plus className="size-4" />
+            <PlusIcon className="size-4" />
             <span className="ml-1">{t('addThirty')}</span>
           </Button>
           <Button variant="default" onClick={onSkip} className="min-h-tap flex-1">

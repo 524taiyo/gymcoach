@@ -126,7 +126,7 @@ export function PhotosCard({ photos }: Props) {
             void upload();
           }}
         >
-          <div className="min-w-40 flex-1 space-y-1">
+          <div className="w-full space-y-1 sm:w-auto sm:min-w-40 sm:flex-1">
             <Label htmlFor="progress-photo-file">Photo</Label>
             <Input
               id="progress-photo-file"
@@ -135,7 +135,7 @@ export function PhotosCard({ photos }: Props) {
               accept="image/jpeg,image/png,image/webp"
             />
           </div>
-          <div className="space-y-1">
+          <div className="w-full space-y-1 sm:w-auto">
             <Label htmlFor="progress-photo-date">Date</Label>
             <Input
               id="progress-photo-date"
@@ -144,7 +144,7 @@ export function PhotosCard({ photos }: Props) {
               onChange={(e) => setTakenAt(e.target.value)}
             />
           </div>
-          <div className="min-w-32 flex-1 space-y-1">
+          <div className="w-full space-y-1 sm:w-auto sm:min-w-32 sm:flex-1">
             <Label htmlFor="progress-photo-note">Note (optional)</Label>
             <Input
               id="progress-photo-note"
@@ -154,7 +154,7 @@ export function PhotosCard({ photos }: Props) {
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" disabled={busy} className="min-h-tap w-full sm:min-h-0 sm:w-auto">
             {busy ? 'Uploading...' : 'Upload'}
           </Button>
         </form>
@@ -167,7 +167,7 @@ export function PhotosCard({ photos }: Props) {
         ) : (
           <>
             {/* Gallery: newest first, deletable */}
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-2 md:grid-cols-5">
               {photos.map((p) => (
                 <figure key={p.id} className="group relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -184,7 +184,7 @@ export function PhotosCard({ photos }: Props) {
                     type="button"
                     variant="secondary"
                     size="icon"
-                    className="absolute right-1 top-1 size-7 opacity-80"
+                    className="absolute right-1.5 top-1.5 size-9 opacity-90 shadow-sm"
                     aria-label={`Delete photo of ${shortDate(p.takenAt)}`}
                     onClick={() => void deletePhoto(p)}
                     disabled={busy}

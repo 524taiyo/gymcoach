@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Dumbbell, Loader2, MessageSquarePlus, Send } from 'lucide-react';
+import { Loader2, MessageSquarePlus, Send } from 'lucide-react';
+import { WorkoutIcon } from '@/components/icons';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -167,7 +168,7 @@ export function ChatClient({
 
       {sessionId && (
         <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-          <Dumbbell className="size-4 shrink-0 text-primary" />
+          <WorkoutIcon className="size-4 shrink-0 text-primary" />
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-foreground">{t('liveSession')}</span>{' '}
             {t('liveSessionDescription')}
@@ -175,13 +176,13 @@ export function ChatClient({
         </div>
       )}
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={newConversation}
-          className="shrink-0"
+          className="h-10 shrink-0 sm:h-8"
         >
           <MessageSquarePlus className="size-4" />
           <span className="ml-1.5">{t('new')}</span>
@@ -192,7 +193,7 @@ export function ChatClient({
             type="button"
             onClick={() => openConversation(c.id)}
             className={cn(
-              'shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors',
+              'max-w-[12rem] shrink-0 truncate rounded-full border px-3 py-2.5 text-xs transition-colors sm:py-1.5',
               c.id === activeId
                 ? 'border-primary/40 bg-primary/10 text-foreground'
                 : 'border-border text-muted-foreground hover:bg-accent/40',
@@ -218,7 +219,7 @@ export function ChatClient({
             <div
               key={i}
               className={cn(
-                'max-w-[85%] rounded-lg px-3 py-2 text-sm',
+                'min-w-0 max-w-[90%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%]',
                 m.role === 'user'
                   ? 'self-end bg-primary text-primary-foreground'
                   : 'self-start bg-muted',
@@ -228,7 +229,7 @@ export function ChatClient({
                 m.content === '' && streaming ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <article className="prose prose-sm dark:prose-invert max-w-none">
+                  <article className="prose prose-sm dark:prose-invert max-w-none break-words [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </article>
                 )

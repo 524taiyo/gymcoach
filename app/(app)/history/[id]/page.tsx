@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
-import { ArrowLeft, Calendar, Clock, Download, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
+import { CalendarIcon, TimerIcon, WorkoutIcon } from '@/components/icons';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,7 @@ export default async function HistorySessionPage(props: Params) {
                 </Badge>
               )}
               <Badge variant="outline" className="gap-1">
-                <Calendar className="size-3" />
+                <CalendarIcon className="size-3" />
                 {format.dateTime(session.startedAt, {
                   day: '2-digit',
                   month: 'long',
@@ -164,7 +165,7 @@ export default async function HistorySessionPage(props: Params) {
               </Badge>
               {durationMin != null && (
                 <Badge variant="outline" className="gap-1">
-                  <Clock className="size-3" />
+                  <TimerIcon className="size-3" />
                   {t('minutes', { count: durationMin })}
                 </Badge>
               )}
@@ -424,7 +425,7 @@ export default async function HistorySessionPage(props: Params) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Dumbbell className="size-4 shrink-0 text-muted-foreground" />
+      <WorkoutIcon className="size-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="truncate font-medium">{value}</p>

@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import type { LucideIcon } from 'lucide-react';
+import type { IconComponent } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
+  icon?: IconComponent;
   title: string;
   description?: string;
   action?: { label: string; href: string };

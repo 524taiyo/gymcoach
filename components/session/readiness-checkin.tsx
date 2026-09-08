@@ -236,9 +236,9 @@ function SorenessRow({
   const t = useTranslations('session.readiness');
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <span className="text-sm">{label}</span>
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-1">
         {SCALE.map((n) => (
           <Button
             key={n}
@@ -246,7 +246,7 @@ function SorenessRow({
             size="sm"
             variant={value === n ? 'default' : 'outline'}
             onClick={() => onChange(n)}
-            className="min-h-tap w-9 px-0 text-sm font-semibold"
+            className="min-h-tap px-0 text-sm font-semibold sm:w-9"
             aria-label={t('sorenessAria', { name: label, value: n })}
             aria-pressed={value === n}
           >

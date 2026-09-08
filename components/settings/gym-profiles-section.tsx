@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Building2, Check, Plus, Save, Trash2 } from 'lucide-react';
+import { Building2, Check, Save, Trash2 } from 'lucide-react';
+import { PlusIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import type { Exercise, Gym, GymExerciseConfig } from '@/lib/prisma-client';
 import { Button } from '@/components/ui/button';
@@ -185,7 +186,7 @@ export function GymProfilesSection({ initialGyms, activeGymId: initialActive, ex
             onClick={() => selectGym('new')}
             title={t('newGym')}
           >
-            <Plus className="size-4" />
+            <PlusIcon className="size-4" />
           </Button>
         </div>
 
