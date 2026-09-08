@@ -26,6 +26,10 @@ export default defineConfig({
     // `prisma generate` at image-build time (no DATABASE_URL, and generate does
     // not need one). It is undefined only for commands that never connect;
     // migrate/seed run with DATABASE_URL set.
-    url: process.env.DATABASE_URL,
+    //
+    // On Neon, migrations must use the direct (non-pooled) connection because
+    // PgBouncer does not support all DDL operations. DATABASE_URL_UNPOOLED is
+    // set in production; fall back to DATABASE_URL for local dev.
+    url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL,
   },
 });
