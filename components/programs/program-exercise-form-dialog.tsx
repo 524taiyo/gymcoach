@@ -98,6 +98,11 @@ export function ProgramExerciseFormDialog(props: Props) {
     defaultValues: initial,
   });
 
+  // Picking an exercise pre-fills a recommended prescription (sets, reps,
+  // RIR) and the exercise's default rest. Create mode only, so an edited
+  // prescription is never silently overwritten; every value stays editable.
+  const [recommended, setRecommended] = useState(false);
+
   useEffect(() => {
     if (props.open) {
       form.reset(initial);
@@ -106,14 +111,20 @@ export function ProgramExerciseFormDialog(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open, initial]);
 
-  // Picking an exercise pre-fills a recommended prescription (sets, reps,
-  // RIR) and the exercise's default rest. Create mode only, so an edited
-  // prescription is never silently overwritten; every value stays editable.
-  const [recommended, setRecommended] = useState(false);
-  function handleExerciseChange(exerciseId: string) {
+  // Exercises created from the picker during this dialog's life, so they can
+  // be selected immediately without waiting for the server refresh.
+  const [createdExercises, setCreatedExercises] = useState<Exercise[]>([]);
+  const catalog = useMemo(
+    () => [
+      ...createdExercises.filter((c) => !props.catalog.some((e) => e.id === c.id)),
+      ...props.catalog,
+    ],
+    [createdExercises, props.catalog],
+  );
+  function handleExerciseChange(exerciseId: string, justCreated?: Exercise) {
     form.setValue('exerciseId', exerciseId, { shouldValidate: true });
     if (props.mode === 'create') {
-      const exo = props.catalog.find((e) => e.id === exerciseId);
+      const exo = justCreated ?? catalog.find((e) => e.id === exerciseId);
       if (exo) {
         const rx = recommendedPrescription(exo);
         form.setValue('targetSets', rx.targetSets);
@@ -180,9 +191,14 @@ export function ProgramExerciseFormDialog(props: Props) {
             <Label htmlFor="exerciseSearch">{t('choose')}</Label>
             <ExercisePicker
               inputId="exerciseSearch"
-              catalog={props.catalog}
+              catalog={catalog}
               value={form.watch('exerciseId')}
               onChange={handleExerciseChange}
+              onCreate={(exercise) => {
+                setCreatedExercises((prev) => [exercise, ...prev]);
+                handleExerciseChange(exercise.id, exercise);
+                router.refresh();
+              }}
             />
             {form.formState.errors.exerciseId && (
               <p className="text-sm text-destructive">{form.formState.errors.exerciseId.message}</p>

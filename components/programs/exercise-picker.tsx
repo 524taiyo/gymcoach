@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { BODY_PARTS, bodyPartOf, type BodyPart } from '@/lib/body-parts';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { QuickExerciseCreate } from '@/components/programs/quick-exercise-create';
+import { PlusIcon } from '@/components/icons';
 import { Illustration } from '@/components/brand/illustration';
 
 interface Props {
@@ -15,6 +17,9 @@ interface Props {
   value: string;
   onChange: (exerciseId: string) => void;
   inputId?: string;
+  // Called after a new exercise is created from the picker; the parent owns
+  // the catalog list and is expected to add it (and usually select it).
+  onCreate?: (exercise: Exercise) => void;
 }
 
 type Tab = 'all' | BodyPart;
@@ -22,12 +27,13 @@ type Tab = 'all' | BodyPart;
 // Body-part tabs (chest / back / shoulders / arms / legs / core) over a plain
 // list of exercise names, plus a search box. The current choice stays pinned
 // above the list so it is visible whatever tab or query is active.
-export function ExercisePicker({ catalog, value, onChange, inputId }: Props) {
+export function ExercisePicker({ catalog, value, onChange, inputId, onCreate }: Props) {
   const t = useTranslations('programs.exercise');
   const partsT = useTranslations('exercises.bodyParts');
   const exerciseName = useExerciseName();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('all');
+  const [creating, setCreating] = useState(false);
 
   const selected = catalog.find((e) => e.id === value) ?? null;
 
@@ -124,6 +130,31 @@ export function ExercisePicker({ catalog, value, onChange, inputId }: Props) {
           })
         )}
       </div>
+
+      {onCreate &&
+        (creating ? (
+          <QuickExerciseCreate
+            initialName={query.trim()}
+            onCancel={() => setCreating(false)}
+            onCreated={(exercise) => {
+              setCreating(false);
+              setQuery('');
+              setTab('all');
+              onCreate(exercise);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-dashed px-3 text-left text-sm font-medium text-primary-ink transition-colors hover:bg-accent/40"
+          >
+            <PlusIcon className="size-4" />
+            <span className="truncate">
+              {query.trim() ? t('createNamed', { name: query.trim() }) : t('createNew')}
+            </span>
+          </button>
+        ))}
     </div>
   );
 }
