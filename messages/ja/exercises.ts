@@ -3,8 +3,7 @@ import type { MessageShape } from '@/i18n/message-types';
 
 export const exercises = {
   title: '種目カタログ',
-  savedCount:
-    '{count, plural, =0 {保存された種目なし。} other {# 種目保存済み。}}',
+  savedCount: '{count, plural, =0 {保存された種目なし。} other {# 種目保存済み。}}',
   search: '種目名で検索',
   emptyTitle: '種目なし',
   emptyDescription: 'カタログが空です。プログラムで使用するために最初の種目を追加してください。',
@@ -53,6 +52,16 @@ export const exercises = {
     source: 'ソース: {source} · {license}',
     missing: 'このカスタム種目にはまだ確認済みのローカルメディアが設定されていません。',
     searchCommons: 'Wikimedia Commonsを検索',
+  },
+  bodyParts: {
+    all: 'すべて',
+    chest: '胸',
+    back: '背中',
+    shoulders: '肩',
+    arms: '腕',
+    legs: '足',
+    core: '体幹',
+    other: 'その他',
   },
   muscleGroups: {
     chest: '胸',

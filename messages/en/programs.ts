@@ -108,6 +108,7 @@ export const programs = {
     search: 'Search the catalog',
     noMatch: 'No exercise matches.',
     selected: 'Selected',
+    recommendedHint: 'Recommended for this exercise. Change anything.',
     pairPrevious: 'Pair with previous',
     unpair: 'Unpair superset',
     superset: 'Superset {label}',

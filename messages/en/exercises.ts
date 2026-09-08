@@ -51,6 +51,16 @@ export const exercises = {
     missing: 'No verified local media is mapped to this custom exercise yet.',
     searchCommons: 'Search Wikimedia Commons',
   },
+  bodyParts: {
+    all: 'All',
+    chest: 'Chest',
+    back: 'Back',
+    shoulders: 'Shoulders',
+    arms: 'Arms',
+    legs: 'Legs',
+    core: 'Core',
+    other: 'Other',
+  },
   muscleGroups: {
     chest: 'Chest',
     backWidth: 'Back (width)',

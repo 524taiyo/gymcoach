@@ -112,6 +112,7 @@ export const programs = {
     search: 'カタログを検索',
     noMatch: '該当する種目がありません。',
     selected: '選択中',
+    recommendedHint: 'この種目の推奨値です。自由に変更できます。',
     pairPrevious: '前の種目とペアリング',
     unpair: 'スーパーセットを解除',
     superset: 'スーパーセット {label}',

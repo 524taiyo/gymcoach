@@ -115,6 +115,7 @@ export const programs = {
     search: 'Rechercher dans le catalogue',
     noMatch: 'Aucun exercice ne correspond.',
     selected: 'Sélectionné',
+    recommendedHint: 'Valeurs recommandées pour cet exercice. Modifiez à volonté.',
     pairPrevious: 'Associer au précédent',
     unpair: 'Dissocier le superset',
     superset: 'Superset {label}',

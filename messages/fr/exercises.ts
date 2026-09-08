@@ -10,7 +10,8 @@ export const exercises = {
   emptyDescription:
     'Le catalogue est vide. Ajoutez votre premier exercice pour pouvoir l’utiliser dans un programme.',
   noMatchTitle: 'Aucun exercice trouvé',
-  noMatchDescription: 'Aucun nom d’exercice ne correspond à « {query} ». Essayez une autre recherche.',
+  noMatchDescription:
+    'Aucun nom d’exercice ne correspond à « {query} ». Essayez une autre recherche.',
   restSeconds: 'repos {seconds} s',
   editTitle: 'Modifier l’exercice',
   addTitle: 'Ajouter un exercice',
@@ -54,6 +55,16 @@ export const exercises = {
     source: 'Source : {source} · {license}',
     missing: 'Aucun média local vérifié n’est associé à cet exercice personnalisé pour l’instant.',
     searchCommons: 'Chercher sur Wikimedia Commons',
+  },
+  bodyParts: {
+    all: 'Tous',
+    chest: 'Pectoraux',
+    back: 'Dos',
+    shoulders: 'Épaules',
+    arms: 'Bras',
+    legs: 'Jambes',
+    core: 'Gainage',
+    other: 'Autre',
   },
   muscleGroups: {
     chest: 'Pectoraux',

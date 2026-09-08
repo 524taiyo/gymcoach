@@ -113,6 +113,7 @@ export const programs = {
     search: 'Поиск по каталогу',
     noMatch: 'Ничего не найдено.',
     selected: 'Выбрано',
+    recommendedHint: 'Рекомендация для этого упражнения. Меняйте как угодно.',
     pairPrevious: 'Объединить с предыдущим',
     unpair: 'Разъединить суперсет',
     superset: 'Суперсет {label}',

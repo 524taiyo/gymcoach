@@ -54,6 +54,16 @@ export const exercises = {
     missing: 'Для этого пользовательского упражнения пока нет проверенного локального медиа.',
     searchCommons: 'Найти на Wikimedia Commons',
   },
+  bodyParts: {
+    all: 'Все',
+    chest: 'Грудь',
+    back: 'Спина',
+    shoulders: 'Плечи',
+    arms: 'Руки',
+    legs: 'Ноги',
+    core: 'Кор',
+    other: 'Другое',
+  },
   muscleGroups: {
     chest: 'Грудь',
     backWidth: 'Спина (ширина)',

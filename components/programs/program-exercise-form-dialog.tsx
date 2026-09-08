@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
@@ -30,6 +30,7 @@ import {
   type ProgramExerciseInput,
 } from '@/lib/schemas/program-exercise';
 import { ExercisePicker } from '@/components/programs/exercise-picker';
+import { recommendedPrescription } from '@/lib/prescription-defaults';
 
 interface CreateProps {
   open: boolean;
@@ -98,17 +99,30 @@ export function ProgramExerciseFormDialog(props: Props) {
   });
 
   useEffect(() => {
-    if (props.open) form.reset(initial);
+    if (props.open) {
+      form.reset(initial);
+      setRecommended(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open, initial]);
 
-  // Picking an exercise pre-fills its default rest (create mode only, so an
-  // edited prescription is never silently overwritten).
+  // Picking an exercise pre-fills a recommended prescription (sets, reps,
+  // RIR) and the exercise's default rest. Create mode only, so an edited
+  // prescription is never silently overwritten; every value stays editable.
+  const [recommended, setRecommended] = useState(false);
   function handleExerciseChange(exerciseId: string) {
     form.setValue('exerciseId', exerciseId, { shouldValidate: true });
     if (props.mode === 'create') {
       const exo = props.catalog.find((e) => e.id === exerciseId);
-      if (exo) form.setValue('restSec', exo.defaultRestSec);
+      if (exo) {
+        const rx = recommendedPrescription(exo);
+        form.setValue('targetSets', rx.targetSets);
+        form.setValue('targetRepsMin', rx.targetRepsMin);
+        form.setValue('targetRepsMax', rx.targetRepsMax);
+        form.setValue('targetRIR', rx.targetRIR);
+        form.setValue('restSec', exo.defaultRestSec);
+        setRecommended(true);
+      }
     }
   }
 
@@ -181,10 +195,12 @@ export function ProgramExerciseFormDialog(props: Props) {
             {numberField('targetRepsMax', t('repsMax'), 1, 50)}
             {numberField('targetRIR', 'RIR', 0, 5)}
           </div>
-          {form.formState.errors.targetRepsMax && (
+          {form.formState.errors.targetRepsMax ? (
             <p className="text-sm text-destructive">
               {form.formState.errors.targetRepsMax.message}
             </p>
+          ) : (
+            recommended && <p className="text-xs text-muted-foreground">{t('recommendedHint')}</p>
           )}
 
           <div className="grid grid-cols-2 gap-2">
