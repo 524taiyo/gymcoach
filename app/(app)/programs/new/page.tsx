@@ -1,43 +1,75 @@
 import Link from 'next/link';
-import { ChevronLeft, LayoutTemplate } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutTemplate, Wand2 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import { requireSession } from '@/lib/auth';
+import { PlusIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
 import { ProgramCreateForm } from '@/components/programs/program-create-form';
+import { TemplatePicker } from '@/components/programs/template-picker';
+import { programTemplates } from '@/lib/programs/templates';
 
+// One screen for every way to start a program: a template (one tap), the AI
+// generator, or a blank program named by hand. Replaces the former
+// new -> template two-step.
 export default async function NewProgramPage() {
   const t = await getTranslations('programs');
   const common = await getTranslations('common');
+  await requireSession();
 
   return (
     <main className="flex-1 px-4 py-6">
-      <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <Button asChild variant="ghost" size="sm" className="self-start">
+      <div className="mx-auto flex max-w-2xl flex-col gap-5">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 self-start">
           <Link href="/programs">
             <ChevronLeft className="size-4" />
             <span className="ml-1">{common('actions.back')}</span>
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">{t('newProgram')}</h1>
+
+        <PageHeader title={t('newProgram')} description={t('newProgramDescription')} />
 
         <Card>
-          <CardContent className="flex items-center justify-between gap-3 pt-6">
-            <div className="flex min-w-0 items-start gap-3">
-              <LayoutTemplate className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{t('startFromTemplate')}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t('templateTeaser')}
-                </p>
-              </div>
-            </div>
-            <Button asChild variant="outline" className="min-h-tap shrink-0">
-              <Link href="/programs/new/template">{t('browse')}</Link>
-            </Button>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <PlusIcon className="size-4 text-primary" />
+              {t('optionManualTitle')}
+            </CardTitle>
+            <CardDescription>{t('optionManualDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProgramCreateForm />
           </CardContent>
         </Card>
 
-        <ProgramCreateForm />
+        <Link href="/programs/generate" className="block">
+          <Card className="transition-colors hover:bg-accent/40">
+            <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Wand2 className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-semibold">{t('generateWithAi')}</p>
+                <p className="text-sm text-muted-foreground">{t('optionAiDescription')}</p>
+              </div>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <LayoutTemplate className="size-4 text-primary" />
+              {t('startFromTemplate')}
+            </CardTitle>
+            <CardDescription>{t('templateTeaser')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TemplatePicker templates={programTemplates} />
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

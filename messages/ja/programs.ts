@@ -40,7 +40,8 @@ export const programs = {
   sessions: 'セッション',
   addSession: 'セッションを追加',
   noSessions: 'セッションなし',
-  noSessionsDescription: '最初のセッションを追加してプログラムを構成してください (例: Upper、Lower)。',
+  noSessionsDescription:
+    '最初のセッションを追加してプログラムを構成してください (例: Upper、Lower)。',
   deleteTitle: 'このプログラムを削除しますか？',
   deleteDescription:
     '"{name}" はそのセッションとプログラムされた種目とともに削除されます。過去のトレーニング履歴はプログラムの関連なしに保持されます。',
@@ -48,6 +49,17 @@ export const programs = {
   templateCreated: 'テンプレートからプログラムを作成しました。',
   templateUse: 'このテンプレートを使用',
   dayCount: '{count, plural, one {# 日} other {# 日}}',
+  newProgramDescription: '始め方を選んでください。あとから何でも変更できます。',
+  optionAiDescription:
+    '目標とスケジュールを書くと、コーチがプログラム全体を下書きします。確認してから保存できます。',
+  optionManualTitle: '自分で作る',
+  optionManualDescription: '名前だけ決めて、セッションと種目はあとから 1 つずつ追加します。',
+  advancedSettings: '詳細設定',
+  useProgram: 'このプログラムを使う',
+  useProgramHelp: '新しいセッションは有効なプログラムから始まります。',
+  templateUseShort: '使う',
+  templateAttributionHint: '原典どおりに実行し、コーチはその範囲内で助言します。',
+  showAllTemplates: 'テンプレートをすべて表示 ({count})',
   workout: {
     actions: 'セッションアクション',
     edit: 'セッションを編集',
@@ -63,6 +75,7 @@ export const programs = {
     flexible: '自由',
     empty: 'プログラムされた種目がありません。下のボタンから追加してください。',
     catalogEmpty: 'カタログが空です。先にカタログで種目を追加してください。',
+    quickNames: 'よく使う名前',
     supersetUpdateError: 'スーパーセットを更新できませんでした。',
     supersetLimit: 'このセッションのスーパーセット上限に達しました。',
     supersetPaired: 'スーパーセットとしてペアリングしました。',
@@ -95,6 +108,10 @@ export const programs = {
     automatic: '自動',
     tempo: 'テンポ (任意)',
     notes: 'メモ (任意)',
+    reps: 'レップ',
+    search: 'カタログを検索',
+    noMatch: '該当する種目がありません。',
+    selected: '選択中',
     pairPrevious: '前の種目とペアリング',
     unpair: 'スーパーセットを解除',
     superset: 'スーパーセット {label}',
@@ -103,13 +120,12 @@ export const programs = {
   },
   generator: {
     title: 'AIでプログラムを生成',
-    description:
-      '目標、スケジュール、経験、制約を説明してください。保存前に結果を編集できます。',
-    placeholder:
-      '例: 筋肥大、週4セッション、上下分割、オーバーヘッドプレスに制限あり。',
+    description: '目標、スケジュール、経験、制約を説明してください。保存前に結果を編集できます。',
+    placeholder: '例: 筋肥大、週4セッション、上下分割、オーバーヘッドプレスに制限あり。',
     generating: '生成中 (10-30秒)...',
     review: '確認・編集',
-    reviewDescription: '必要に応じて調整してからプログラムを作成してください。非アクティブで開始されます。',
+    reviewDescription:
+      '必要に応じて調整してからプログラムを作成してください。非アクティブで開始されます。',
     generationError: '生成に失敗しました。',
     saveError: '生成されたプログラムを保存できませんでした。',
     removeWorkout: 'ワークアウトを削除',

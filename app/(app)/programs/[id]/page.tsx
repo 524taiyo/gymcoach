@@ -5,10 +5,11 @@ import { ProgramDetailView } from '@/components/programs/program-detail-view';
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ add?: string }>;
 }
 
 export default async function ProgramDetailPage(props: Props) {
-  const params = await props.params;
+  const [params, searchParams] = await Promise.all([props.params, props.searchParams]);
   const session = await requireSession();
 
   const program = await db.program.findFirst({
@@ -35,7 +36,11 @@ export default async function ProgramDetailPage(props: Props) {
 
   return (
     <main className="flex-1 px-4 py-6">
-      <ProgramDetailView program={program} catalog={exercisesCatalog} />
+      <ProgramDetailView
+        program={program}
+        catalog={exercisesCatalog}
+        openAddSession={searchParams.add === 'session'}
+      />
     </main>
   );
 }

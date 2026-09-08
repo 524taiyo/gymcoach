@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProgramExerciseFormDialog } from '@/components/programs/program-exercise-form-dialog';
-import { exerciseCategoryMessageKeys, muscleGroupMessageKeys } from '@/i18n/enum-keys';
+import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
 
 type ProgramExerciseWithExercise = ProgramExercise & { exercise: Exercise };
@@ -32,6 +32,9 @@ interface Props {
   onUnpair?: (() => void) | null;
 }
 
+// One programmed exercise: name, the prescription in one line, and a menu.
+// Tapping the row opens the editor; the category / auto-regulation badges of
+// the previous design are gone (they live in the editor's advanced section).
 export function ProgramExerciseRow({
   programExercise,
   catalog,
@@ -72,85 +75,78 @@ export function ProgramExerciseRow({
 
   return (
     <>
-      <div className="rounded-md border border-border bg-card/50 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card/50 pl-3 pr-1">
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          className="min-w-0 flex-1 py-2.5 text-left"
+          aria-label={t('edit')}
+        >
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {supersetLabel && <Badge>{supersetLabel}</Badge>}
             <p className="truncate text-sm font-medium">
               {exerciseName(programExercise.exercise.name)}
             </p>
-            <div className="mt-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-              {supersetLabel && <Badge>{t('superset', { label: supersetLabel })}</Badge>}
-              <Badge variant="secondary">
-                {exerciseT(
-                  `muscleGroups.${muscleGroupMessageKeys[programExercise.exercise.muscleGroup]}`,
-                )}
-              </Badge>
-              <Badge variant="outline">
-                {exerciseT(
-                  `categories.${exerciseCategoryMessageKeys[programExercise.exercise.category]}`,
-                )}
-              </Badge>
-              <Badge variant="outline">
-                {programExercise.autoregulationMode === 'PRESERVE_REPS'
-                  ? t('preserveRepsShort')
-                  : t('preserveRirShort')}
-              </Badge>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {t('prescription', {
-                sets: programExercise.targetSets,
-                reps: repsLabel,
-                rir: programExercise.targetRIR,
-                seconds: programExercise.restSec,
-              })}
-              {programExercise.tempo && t('tempoValue', { tempo: programExercise.tempo })}
-            </p>
-            {programExercise.notes && (
-              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                {programExercise.notes}
-              </p>
-            )}
+            <span className="text-xs text-muted-foreground">
+              {exerciseT(
+                `muscleGroups.${muscleGroupMessageKeys[programExercise.exercise.muscleGroup]}`,
+              )}
+            </span>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="min-h-tap min-w-tap"
-                aria-label={t('actions')}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-                <Pencil className="mr-2 size-4" />
-                {common('actions.edit')}
+          <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+            {t('prescription', {
+              sets: programExercise.targetSets,
+              reps: repsLabel,
+              rir: programExercise.targetRIR,
+              seconds: programExercise.restSec,
+            })}
+            {programExercise.tempo && t('tempoValue', { tempo: programExercise.tempo })}
+          </p>
+          {programExercise.notes && (
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/80">
+              {programExercise.notes}
+            </p>
+          )}
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-11 shrink-0 text-muted-foreground"
+              aria-label={t('actions')}
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+              <Pencil className="mr-2 size-4" />
+              {common('actions.edit')}
+            </DropdownMenuItem>
+            {onPairWithPrevious && (
+              <DropdownMenuItem onSelect={() => onPairWithPrevious()}>
+                <Link2 className="mr-2 size-4" />
+                {t('pairPrevious')}
               </DropdownMenuItem>
-              {onPairWithPrevious && (
-                <DropdownMenuItem onSelect={() => onPairWithPrevious()}>
-                  <Link2 className="mr-2 size-4" />
-                  {t('pairPrevious')}
-                </DropdownMenuItem>
-              )}
-              {onUnpair && (
-                <DropdownMenuItem onSelect={() => onUnpair()}>
-                  <Unlink className="mr-2 size-4" />
-                  {t('unpair')}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={handleDelete}
-                disabled={deleting}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 size-4" />
-                {common('actions.remove')}
+            )}
+            {onUnpair && (
+              <DropdownMenuItem onSelect={() => onUnpair()}>
+                <Unlink className="mr-2 size-4" />
+                {t('unpair')}
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={handleDelete}
+              disabled={deleting}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 size-4" />
+              {common('actions.remove')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <ProgramExerciseFormDialog

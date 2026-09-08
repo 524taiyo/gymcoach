@@ -8,6 +8,7 @@ import { requireSession } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { getTrainingDisplayName } from '@/i18n/training-names';
 
 export default async function ProgramsPage() {
@@ -49,12 +50,12 @@ export default async function ProgramsPage() {
         />
 
         {programs.length === 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('noProgram')}</CardTitle>
-              <CardDescription>{t('noProgramDescription')}</CardDescription>
-            </CardHeader>
-          </Card>
+          <EmptyState
+            icon={WorkoutIcon}
+            title={t('noProgram')}
+            description={t('noProgramDescription')}
+            action={{ label: t('create'), href: '/programs/new' }}
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {programs.map((p) => (

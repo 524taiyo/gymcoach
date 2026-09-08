@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { ProgramTemplate } from '@/lib/programs/templates';
@@ -13,14 +13,19 @@ interface Props {
   templates: ProgramTemplate[];
 }
 
-// "Start from a template" picker. Materializes the selected template into a
-// real Program through the same /api/programs/from-template route the AI generator
-// uses, so the structure is persisted exactly as written and the coach treats
-// it like any user-authored program.
+// Rows shown before "show all": enough to see the popular splits without
+// pushing the other ways to start a program off the first screen.
+const INITIAL_VISIBLE = 3;
+
+// Compact "start from a template" list: one row per template, one tap to use.
+// Materializes the template through /api/programs/from-template (same
+// persistence as the AI generator) and makes it the active program.
 export function TemplatePicker({ templates }: Props) {
   const t = useTranslations('programs');
   const router = useRouter();
   const [creatingSlug, setCreatingSlug] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(templates.length <= INITIAL_VISIBLE);
+  const visible = showAll ? templates : templates.slice(0, INITIAL_VISIBLE);
 
   async function instantiate(template: ProgramTemplate) {
     setCreatingSlug(template.slug);
@@ -45,38 +50,44 @@ export function TemplatePicker({ templates }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {templates.map((template) => {
+    <div className="flex flex-col divide-y divide-border rounded-lg border">
+      {visible.map((template) => {
         const dayCount = template.program.workouts.length;
+        const busy = creatingSlug === template.slug;
         return (
-          <Card key={template.slug}>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold">{template.name}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{template.summary}</p>
-                </div>
-                <Badge variant="secondary" className="shrink-0">
-                  {t('dayCount', { count: dayCount })}
-                </Badge>
+          <div key={template.slug} className="flex items-center gap-3 p-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="text-sm font-semibold">{template.name}</p>
+                <Badge variant="secondary">{t('dayCount', { count: dayCount })}</Badge>
               </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground">{template.attribution}</p>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  className="min-h-tap"
-                  disabled={creatingSlug !== null}
-                  onClick={() => instantiate(template)}
-                >
-                  {creatingSlug === template.slug ? t('creating') : t('templateUse')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                {template.summary}
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-10 shrink-0 px-4"
+              disabled={creatingSlug !== null}
+              onClick={() => instantiate(template)}
+            >
+              {busy ? <Loader2 className="size-4 animate-spin" /> : t('templateUseShort')}
+            </Button>
+          </div>
         );
       })}
+      {!showAll && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="min-h-11 w-full px-3 text-sm font-medium text-primary hover:bg-accent/40"
+        >
+          {t('showAllTemplates', { count: templates.length })}
+        </button>
+      )}
+      <p className="px-3 py-2 text-xs text-muted-foreground">{t('templateAttributionHint')}</p>
     </div>
   );
 }

@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { workoutInputSchema, type WorkoutInput } from '@/lib/schemas/workout';
+import { cn } from '@/lib/utils';
+import { useTrainingName } from '@/components/shared/use-training-name';
 
 const DAY_KEYS = [
   'monday',
@@ -52,9 +54,14 @@ type Props = CreateProps | EditProps;
 
 const NO_DAY = '__none__';
 
+// Canonical names offered as one-tap chips when creating a session. Stored as
+// written; the display layer localizes them where a locale has a rule.
+const QUICK_NAMES = ['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full Body'] as const;
+
 export function WorkoutFormDialog(props: Props) {
   const t = useTranslations('programs.workout');
   const common = useTranslations('common');
+  const trainingName = useTrainingName();
   const router = useRouter();
 
   const initial: WorkoutInput =
@@ -99,16 +106,36 @@ export function WorkoutFormDialog(props: Props) {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {props.mode === 'edit' ? t('edit') : t('create')}
-          </DialogTitle>
+          <DialogTitle>{props.mode === 'edit' ? t('edit') : t('create')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div className="space-y-2">
             <Label htmlFor="name">{common('fields.name')}</Label>
-            <Input id="name" placeholder={t('namePlaceholder')} {...form.register('name')} />
+            <Input
+              id="name"
+              placeholder={t('namePlaceholder')}
+              autoComplete="off"
+              {...form.register('name')}
+            />
             {form.formState.errors.name && (
               <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+            )}
+            {props.mode === 'create' && (
+              <div className="flex flex-wrap gap-1.5 pt-1" aria-label={t('quickNames')}>
+                {QUICK_NAMES.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => form.setValue('name', name, { shouldValidate: true })}
+                    className={cn(
+                      'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent',
+                      form.watch('name') === name && 'border-primary/40 bg-primary/10 text-primary',
+                    )}
+                  >
+                    {trainingName(name)}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -116,9 +143,7 @@ export function WorkoutFormDialog(props: Props) {
             <Label htmlFor="dayOfWeek">{t('day')}</Label>
             <Select
               value={form.watch('dayOfWeek') == null ? NO_DAY : String(form.watch('dayOfWeek'))}
-              onValueChange={(v) =>
-                form.setValue('dayOfWeek', v === NO_DAY ? null : Number(v))
-              }
+              onValueChange={(v) => form.setValue('dayOfWeek', v === NO_DAY ? null : Number(v))}
             >
               <SelectTrigger id="dayOfWeek">
                 <SelectValue placeholder={t('flexible')} />

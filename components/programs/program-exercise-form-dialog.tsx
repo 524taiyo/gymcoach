@@ -6,12 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import type {
-  Exercise,
-  MuscleGroup,
-  ProgramExercise,
-  SetAutoregulationMode,
-} from '@/lib/prisma-client';
+import type { Exercise, ProgramExercise, SetAutoregulationMode } from '@/lib/prisma-client';
 import {
   Dialog,
   DialogContent,
@@ -26,9 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -36,8 +29,7 @@ import {
   programExerciseInputSchema,
   type ProgramExerciseInput,
 } from '@/lib/schemas/program-exercise';
-import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
-import { useExerciseName } from '@/components/shared/use-exercise-name';
+import { ExercisePicker } from '@/components/programs/exercise-picker';
 
 interface CreateProps {
   open: boolean;
@@ -71,11 +63,13 @@ const DEFAULT_VALUES: ProgramExerciseInput = {
   notes: '',
 };
 
+// Two tiers: the four numbers a lifter always sets (sets, reps, RIR, rest)
+// are visible; tempo, auto-regulation tuning and notes wait under "advanced
+// settings" with defaults that match what the coach assumes.
 export function ProgramExerciseFormDialog(props: Props) {
   const t = useTranslations('programs.exercise');
-  const exerciseT = useTranslations('exercises');
+  const programsT = useTranslations('programs');
   const common = useTranslations('common');
-  const exerciseName = useExerciseName();
   const router = useRouter();
 
   const initial: ProgramExerciseInput = useMemo(() => {
@@ -108,8 +102,8 @@ export function ProgramExerciseFormDialog(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open, initial]);
 
-  // When an exercise is selected from the catalog, we pre-fill restSec
-  // with its defaultRestSec (only in create mode).
+  // Picking an exercise pre-fills its default rest (create mode only, so an
+  // edited prescription is never silently overwritten).
   function handleExerciseChange(exerciseId: string) {
     form.setValue('exerciseId', exerciseId, { shouldValidate: true });
     if (props.mode === 'create') {
@@ -143,16 +137,22 @@ export function ProgramExerciseFormDialog(props: Props) {
     router.refresh();
   }
 
-  // Group the catalog by muscleGroup for the dropdown list.
-  const grouped = useMemo(() => {
-    const out = new Map<string, Exercise[]>();
-    for (const ex of props.catalog) {
-      const key = ex.muscleGroup;
-      if (!out.has(key)) out.set(key, []);
-      out.get(key)!.push(ex);
-    }
-    return Array.from(out.entries());
-  }, [props.catalog]);
+  const numberField = (id: keyof ProgramExerciseInput, label: string, min: number, max: number) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        type="number"
+        inputMode="numeric"
+        min={min}
+        max={max}
+        className="h-11 text-center text-base font-semibold tabular-nums md:h-10"
+        {...form.register(id)}
+      />
+    </div>
+  );
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -162,165 +162,117 @@ export function ProgramExerciseFormDialog(props: Props) {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          <div className="space-y-2">
-            <Label htmlFor="exerciseId">{t('add')}</Label>
-            <Select value={form.watch('exerciseId')} onValueChange={handleExerciseChange}>
-              <SelectTrigger id="exerciseId">
-                <SelectValue placeholder={t('choose')} />
-              </SelectTrigger>
-              <SelectContent>
-                {grouped.map(([group, list]) => (
-                  <SelectGroup key={group}>
-                    <SelectLabel>
-                      {exerciseT(`muscleGroups.${muscleGroupMessageKeys[group as MuscleGroup]}`)}
-                    </SelectLabel>
-                    {list.map((ex) => (
-                      <SelectItem key={ex.id} value={ex.id}>
-                        {exerciseName(ex.name)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-1.5">
+            <Label htmlFor="exerciseSearch">{t('choose')}</Label>
+            <ExercisePicker
+              inputId="exerciseSearch"
+              catalog={props.catalog}
+              value={form.watch('exerciseId')}
+              onChange={handleExerciseChange}
+            />
             {form.formState.errors.exerciseId && (
               <p className="text-sm text-destructive">{form.formState.errors.exerciseId.message}</p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="targetSets">{t('sets')}</Label>
-              <Input
-                id="targetSets"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={20}
-                {...form.register('targetSets')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="targetRIR">RIR</Label>
-              <Input
-                id="targetRIR"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={5}
-                {...form.register('targetRIR')}
-              />
-            </div>
+          <div className="grid grid-cols-4 gap-2">
+            {numberField('targetSets', t('sets'), 1, 20)}
+            {numberField('targetRepsMin', t('repsMin'), 1, 50)}
+            {numberField('targetRepsMax', t('repsMax'), 1, 50)}
+            {numberField('targetRIR', 'RIR', 0, 5)}
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="targetRepsMin">{t('repsMin')}</Label>
-              <Input
-                id="targetRepsMin"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={50}
-                {...form.register('targetRepsMin')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="targetRepsMax">{t('repsMax')}</Label>
-              <Input
-                id="targetRepsMax"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={50}
-                {...form.register('targetRepsMax')}
-              />
-              {form.formState.errors.targetRepsMax && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.targetRepsMax.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="restSec">{t('rest')}</Label>
-              <Input
-                id="restSec"
-                type="number"
-                inputMode="numeric"
-                min={15}
-                max={600}
-                {...form.register('restSec')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tempo">{t('tempo')}</Label>
-              <Input id="tempo" placeholder="3-1-1-0" {...form.register('tempo')} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="autoregulationMode">{t('autoregulationMode')}</Label>
-            <Select
-              value={form.watch('autoregulationMode') ?? 'PRESERVE_RIR'}
-              onValueChange={(value) =>
-                form.setValue('autoregulationMode', value as SetAutoregulationMode)
-              }
-            >
-              <SelectTrigger id="autoregulationMode">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PRESERVE_RIR">{t('preserveRir')}</SelectItem>
-                <SelectItem value="PRESERVE_REPS">{t('preserveReps')}</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {form.watch('autoregulationMode') === 'PRESERVE_REPS'
-                ? t('preserveRepsHelp')
-                : t('preserveRirHelp')}
+          {form.formState.errors.targetRepsMax && (
+            <p className="text-sm text-destructive">
+              {form.formState.errors.targetRepsMax.message}
             </p>
-          </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="fatigueRate">{t('fatigueRate')}</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {numberField('restSec', t('rest'), 15, 600)}
+            <div className="space-y-1.5">
+              <Label htmlFor="tempo" className="text-xs">
+                {t('tempo')}
+              </Label>
               <Input
-                id="fatigueRate"
-                type="number"
-                inputMode="decimal"
-                min="0.25"
-                max="2"
-                step="0.05"
-                placeholder={t('automatic')}
-                {...form.register('fatigueRate', {
-                  setValueAs: (value) => (value === '' ? null : Number(value)),
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="loadAdjustmentPct">{t('loadAdjustment')}</Label>
-              <Input
-                id="loadAdjustmentPct"
-                type="number"
-                inputMode="decimal"
-                min="1"
-                max="5"
-                step="0.1"
-                placeholder={t('automatic')}
-                {...form.register('loadAdjustmentPct', {
-                  setValueAs: (value) => (value === '' ? null : Number(value)),
-                })}
+                id="tempo"
+                placeholder="3-1-1-0"
+                className="h-11 md:h-10"
+                {...form.register('tempo')}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">{t('notes')}</Label>
-            <Textarea id="notes" rows={2} {...form.register('notes')} />
-          </div>
+          <details className="group rounded-lg border border-dashed px-3 py-2 text-sm">
+            <summary className="cursor-pointer select-none font-medium text-muted-foreground group-open:text-foreground">
+              {programsT('advancedSettings')}
+            </summary>
+            <div className="mt-3 space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="autoregulationMode">{t('autoregulationMode')}</Label>
+                <Select
+                  value={form.watch('autoregulationMode') ?? 'PRESERVE_RIR'}
+                  onValueChange={(value) =>
+                    form.setValue('autoregulationMode', value as SetAutoregulationMode)
+                  }
+                >
+                  <SelectTrigger id="autoregulationMode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PRESERVE_RIR">{t('preserveRir')}</SelectItem>
+                    <SelectItem value="PRESERVE_REPS">{t('preserveReps')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {form.watch('autoregulationMode') === 'PRESERVE_REPS'
+                    ? t('preserveRepsHelp')
+                    : t('preserveRirHelp')}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fatigueRate" className="text-xs">
+                    {t('fatigueRate')}
+                  </Label>
+                  <Input
+                    id="fatigueRate"
+                    type="number"
+                    inputMode="decimal"
+                    min="0.25"
+                    max="2"
+                    step="0.05"
+                    placeholder={t('automatic')}
+                    {...form.register('fatigueRate', {
+                      setValueAs: (value) => (value === '' ? null : Number(value)),
+                    })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="loadAdjustmentPct" className="text-xs">
+                    {t('loadAdjustment')}
+                  </Label>
+                  <Input
+                    id="loadAdjustmentPct"
+                    type="number"
+                    inputMode="decimal"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    placeholder={t('automatic')}
+                    {...form.register('loadAdjustmentPct', {
+                      setValueAs: (value) => (value === '' ? null : Number(value)),
+                    })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="notes">{t('notes')}</Label>
+                <Textarea id="notes" rows={2} {...form.register('notes')} />
+              </div>
+            </div>
+          </details>
 
           <DialogFooter>
             <Button
