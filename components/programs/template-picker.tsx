@@ -82,7 +82,7 @@ export function TemplatePicker({ templates }: Props) {
         <button
           type="button"
           onClick={() => setShowAll(true)}
-          className="min-h-11 w-full px-3 text-sm font-medium text-primary hover:bg-accent/40"
+          className="min-h-11 w-full px-3 text-sm font-medium text-primary-ink hover:bg-accent/40"
         >
           {t('showAllTemplates', { count: templates.length })}
         </button>

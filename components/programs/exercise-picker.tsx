@@ -53,7 +53,7 @@ export function ExercisePicker({ catalog, value, onChange, inputId }: Props) {
     <div className="space-y-2">
       {selected && (
         <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
-          <Check className="size-4 shrink-0 text-primary" />
+          <Check className="size-4 shrink-0 text-primary-ink" />
           <span className="min-w-0 flex-1 truncate font-medium">{exerciseName(selected.name)}</span>
           <span className="text-xs text-muted-foreground">{t('selected')}</span>
         </div>
@@ -110,7 +110,7 @@ export function ExercisePicker({ catalog, value, onChange, inputId }: Props) {
                 onClick={() => onChange(ex.id)}
                 className={cn(
                   'flex min-h-11 w-full items-center justify-between gap-2 border-b border-border/60 px-3 py-2 text-left text-sm transition-colors last:border-b-0 hover:bg-accent/60',
-                  active && 'bg-primary/10 font-medium text-primary',
+                  active && 'bg-primary/10 font-medium text-primary-ink',
                 )}
               >
                 <span className="truncate">{label}</span>

@@ -129,7 +129,7 @@ export function WorkoutFormDialog(props: Props) {
                     onClick={() => form.setValue('name', name, { shouldValidate: true })}
                     className={cn(
                       'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent',
-                      form.watch('name') === name && 'border-primary/40 bg-primary/10 text-primary',
+                      form.watch('name') === name && 'border-primary/40 bg-primary/10 text-primary-ink',
                     )}
                   >
                     {trainingName(name)}

@@ -124,7 +124,7 @@ function RowDone({
 }
 
 function SyncIcon({ status }: { status: PendingSet['status'] }) {
-  if (status === 'synced') return <Check className="size-4 flex-shrink-0 text-primary" />;
+  if (status === 'synced') return <Check className="size-4 flex-shrink-0 text-primary-ink" />;
   if (status === 'syncing')
     return <Loader2 className="size-4 flex-shrink-0 animate-spin text-muted-foreground" />;
   if (status === 'failed')
@@ -143,7 +143,7 @@ function RowUpcoming({ setNumber, isCurrent }: { setNumber: number; isCurrent: b
       }`}
     >
       {isCurrent ? (
-        <CircleDot className="size-4 flex-shrink-0 text-primary" />
+        <CircleDot className="size-4 flex-shrink-0 text-primary-ink" />
       ) : (
         <Circle className="size-4 flex-shrink-0 text-muted-foreground" />
       )}

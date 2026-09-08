@@ -19,7 +19,7 @@ export function PageHeader({ title, description, icon: Icon, actions, className 
     <div className={cn('flex flex-wrap items-center justify-between gap-3', className)}>
       <div className="flex min-w-0 items-center gap-3">
         {Icon && (
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary-ink ring-1 ring-inset ring-primary/15">
             <Icon className="size-5" />
           </div>
         )}

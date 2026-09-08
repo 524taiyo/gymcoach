@@ -36,7 +36,7 @@ export function CoachContextCard({ summary }: Props) {
           ) : (
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
           )}
-          <Eye className="size-4 text-primary" />
+          <Eye className="size-4 text-primary-ink" />
           <h2 className="text-base font-semibold">{t('title')}</h2>
         </button>
         {!open && <p className="pl-6 text-xs text-muted-foreground">{t('teaser')}</p>}

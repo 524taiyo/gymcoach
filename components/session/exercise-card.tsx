@@ -199,9 +199,9 @@ export function ExerciseCard({
           <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
             <div className="flex items-center gap-2">
               {suggestion.reason === 'progression' ? (
-                <TrendingUp className="size-4 text-primary" />
+                <TrendingUp className="size-4 text-primary-ink" />
               ) : (
-                <Lightbulb className="size-4 text-primary" />
+                <Lightbulb className="size-4 text-primary-ink" />
               )}
               <span className="flex-1">
                 {t('suggestion')}{' '}
@@ -215,7 +215,7 @@ export function ExerciseCard({
                       })}
                 </span>
                 {suggestion.reason === 'progression' && suggestion.delta && (
-                  <span className="ml-1 text-xs text-primary">
+                  <span className="ml-1 text-xs text-primary-ink">
                     (+
                     {formatWeight(suggestion.delta, unit, {
                       decimals: 2,

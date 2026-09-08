@@ -53,7 +53,7 @@ export function NavLinks({ variant }: NavLinksProps) {
               aria-current={active ? 'page' : undefined}
               className={cn(
                 'flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0 pt-2 pb-1.5 text-[10px] font-medium leading-none tracking-tight transition-colors active:bg-accent/60',
-                active ? 'text-primary' : 'text-muted-foreground',
+                active ? 'text-primary-ink' : 'text-muted-foreground',
               )}
             >
               <span

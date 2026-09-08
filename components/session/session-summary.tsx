@@ -184,7 +184,7 @@ export function SessionSummary({
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Trophy className="size-4 text-primary" />
+                <Trophy className="size-4 text-primary-ink" />
                 {t('records')}
               </CardTitle>
               <CardDescription>{t('bests')}</CardDescription>
@@ -232,7 +232,7 @@ export function SessionSummary({
                 <li key={s.pe.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                   <div className="flex min-w-0 items-center gap-2">
                     {s.complete ? (
-                      <Check className="size-4 text-primary" />
+                      <Check className="size-4 text-primary-ink" />
                     ) : (
                       <span className="size-4 flex-shrink-0 rounded-full border border-muted-foreground/40" />
                     )}

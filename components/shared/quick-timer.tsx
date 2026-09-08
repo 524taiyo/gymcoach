@@ -104,7 +104,7 @@ export function QuickTimer() {
           size={active ? 'sm' : 'icon'}
           aria-label={active ? t('running', { seconds: remainingSec }) : t('open')}
           className={cn(
-            active && 'h-10 gap-1.5 rounded-full bg-primary/10 px-2.5 text-primary hover:bg-primary/15',
+            active && 'h-10 gap-1.5 rounded-full bg-primary/10 px-2.5 text-primary-ink hover:bg-primary/15',
             timer.kind === 'paused' && 'opacity-70',
           )}
         >
@@ -119,7 +119,7 @@ export function QuickTimer() {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <TimerIcon className="size-5 text-primary" />
+            <TimerIcon className="size-5 text-primary-ink" />
             {t('title')}
           </DialogTitle>
           <DialogDescription className="sr-only">{t('title')}</DialogDescription>
@@ -129,7 +129,7 @@ export function QuickTimer() {
           <p
             className={cn(
               'text-7xl font-bold tabular-nums tracking-tight transition-colors',
-              timer.kind === 'done' && 'text-primary',
+              timer.kind === 'done' && 'text-primary-ink',
             )}
           >
             <span data-testid="quick-timer-remaining">{remainingSec}</span>
@@ -147,7 +147,7 @@ export function QuickTimer() {
           </div>
 
           {timer.kind === 'done' && (
-            <p className="text-sm font-medium text-primary">{t('done')}</p>
+            <p className="text-sm font-medium text-primary-ink">{t('done')}</p>
           )}
 
           <div className="w-full">

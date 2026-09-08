@@ -76,7 +76,7 @@ export function DailyTipCard() {
           <CoachIcon className="size-5" strokeWidth={2} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-ink">
             {t('label')}
           </p>
           {state.kind === 'loading' ? (

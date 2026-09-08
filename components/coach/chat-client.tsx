@@ -168,7 +168,7 @@ export function ChatClient({
 
       {sessionId && (
         <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-          <WorkoutIcon className="size-4 shrink-0 text-primary" />
+          <WorkoutIcon className="size-4 shrink-0 text-primary-ink" />
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-foreground">{t('liveSession')}</span>{' '}
             {t('liveSessionDescription')}

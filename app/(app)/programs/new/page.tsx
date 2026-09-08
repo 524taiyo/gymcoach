@@ -33,7 +33,7 @@ export default async function NewProgramPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <PlusIcon className="size-4 text-primary" />
+              <PlusIcon className="size-4 text-primary-ink" />
               {t('optionManualTitle')}
             </CardTitle>
             <CardDescription>{t('optionManualDescription')}</CardDescription>
@@ -46,7 +46,7 @@ export default async function NewProgramPage() {
         <Link href="/programs/generate" className="block">
           <Card className="transition-colors hover:bg-accent/40">
             <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary-ink">
                 <Wand2 className="size-5" />
               </div>
               <div className="min-w-0 flex-1">
@@ -61,7 +61,7 @@ export default async function NewProgramPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <LayoutTemplate className="size-4 text-primary" />
+              <LayoutTemplate className="size-4 text-primary-ink" />
               {t('startFromTemplate')}
             </CardTitle>
             <CardDescription>{t('templateTeaser')}</CardDescription>

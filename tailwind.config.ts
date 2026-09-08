@@ -46,6 +46,10 @@ const config: Config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          // The accent as TEXT or icon colour. The brand lime is too light to
+          // read on white, so text uses a deeper green; dark mode maps it back
+          // to the lime itself.
+          ink: 'hsl(var(--primary-ink))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',

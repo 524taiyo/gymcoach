@@ -64,7 +64,7 @@ export default async function DashboardPage() {
             <Card className="border-primary/30 bg-primary/5 transition-colors hover:bg-primary/10">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Lightbulb className="size-4 text-primary" />
+                  <Lightbulb className="size-4 text-primary-ink" />
                   {insight.title}
                 </CardTitle>
                 <CardDescription>{insight.detail}</CardDescription>
