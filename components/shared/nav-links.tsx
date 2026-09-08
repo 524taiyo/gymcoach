@@ -12,7 +12,6 @@ const LINKS = [
   { href: '/coach', label: 'coach' },
   { href: '/chat', label: 'chat' },
   { href: '/programs', label: 'programs' },
-  { href: '/exercises', label: 'catalog' },
   { href: '/settings', label: 'settings' },
 ] as const;
 
@@ -20,7 +19,7 @@ export function NavLinks() {
   const pathname = usePathname();
   const t = useTranslations('navigation');
   return (
-    <nav className="flex gap-1 overflow-x-auto border-t border-border px-2 py-1">
+    <nav className="flex gap-1 overflow-x-auto border-t px-2 py-1.5">
       {LINKS.map((link) => {
         const active =
           link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
@@ -29,10 +28,10 @@ export function NavLinks() {
             key={link.href}
             href={link.href}
             className={cn(
-              'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
               active
-                ? 'bg-secondary text-secondary-foreground'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
             )}
           >
             {t(link.label)}

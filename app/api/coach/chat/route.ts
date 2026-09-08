@@ -16,6 +16,9 @@ const bodySchema = z.object({
   sessionId: z.string().cuid().optional(),
 });
 
+// Vercel: allow up to 60 s for the streamed AI response.
+export const maxDuration = 60;
+
 // POST /api/coach/chat: appends a user message and streams the assistant reply
 // (text/plain chunks). The conversation id is returned in the X-Conversation-Id
 // header. The assistant message is persisted once the stream completes.

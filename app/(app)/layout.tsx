@@ -12,11 +12,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <SyncBootstrap />
-      <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <Dumbbell className="size-5" />
-            <span className="text-base font-semibold">GymCoach</span>
+            <Dumbbell className="size-4 opacity-80" />
+            <span className="text-sm font-semibold tracking-tight">GymCoach</span>
           </Link>
           <div className="flex items-center gap-2">
             <OfflineIndicator />

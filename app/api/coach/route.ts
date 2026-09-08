@@ -5,6 +5,9 @@ import { buildCoachPayload, callCoach } from '@/lib/coach';
 import { LlmError } from '@/lib/llm';
 import { isoWeekStart } from '@/lib/stats';
 
+// Vercel: allow up to 60 s for the AI response.
+export const maxDuration = 60;
+
 // POST /api/coach: generates a new debrief for the current week.
 // The structured payload is computed server-side then sent to the configured
 // LLM provider. The markdown response is stored in CoachSession.
