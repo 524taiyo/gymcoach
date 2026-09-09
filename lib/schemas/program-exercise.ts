@@ -8,6 +8,9 @@ import {
 } from '@/lib/intra-set-autoregulation';
 import { MAX_SUPERSET_GROUP, MIN_SUPERSET_GROUP } from '@/lib/supersets';
 
+const blankToNull = (value: unknown) =>
+  value === '' || value === undefined || value === null ? null : value;
+
 export const programExerciseInputSchema = z
   .object({
     exerciseId: z.string().min(1, 'Exercise required'),
@@ -17,15 +20,19 @@ export const programExerciseInputSchema = z
     targetRIR: z.coerce.number().int().min(0).max(5),
     restSec: z.coerce.number().int().min(15).max(600),
     autoregulationMode: z.nativeEnum(SetAutoregulationMode).optional(),
-    fatigueRate: z
-      .union([z.coerce.number().min(MIN_FATIGUE_RATE).max(MAX_FATIGUE_RATE), z.null()])
-      .optional(),
-    loadAdjustmentPct: z
-      .union([
+    // Optional tuning knobs. An empty form field arrives as '' (which
+    // z.coerce.number would turn into 0 and reject), so blank means automatic.
+    fatigueRate: z.preprocess(
+      blankToNull,
+      z.union([z.coerce.number().min(MIN_FATIGUE_RATE).max(MAX_FATIGUE_RATE), z.null()]),
+    ),
+    loadAdjustmentPct: z.preprocess(
+      blankToNull,
+      z.union([
         z.coerce.number().min(MIN_LOAD_ADJUSTMENT_PCT).max(MAX_LOAD_ADJUSTMENT_PCT),
         z.null(),
-      ])
-      .optional(),
+      ]),
+    ),
     tempo: z.string().trim().max(20).optional().nullable(),
     notes: z.string().trim().max(2000).optional().nullable(),
     // Superset pairing (issue #146, slice 1): exercises of one workout sharing

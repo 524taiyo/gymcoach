@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 // One progress photo, as serialized at the Server Component boundary. The
 // bytes are only reachable through the ownership-scoped image route.
@@ -47,6 +48,7 @@ export function PhotosCard({ photos }: Props) {
   // oldest and newest so one click shows the widest span.
   const [beforeId, setBeforeId] = useState('');
   const [afterId, setAfterId] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<ProgressPhotoView | null>(null);
 
   const oldest = photos[photos.length - 1];
   const newest = photos[0];
@@ -91,7 +93,6 @@ export function PhotosCard({ photos }: Props) {
   }
 
   async function deletePhoto(photo: ProgressPhotoView) {
-    if (!confirm(`Delete the photo of ${shortDate(photo.takenAt)}?`)) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/progress-photos/${photo.id}`, {
@@ -111,6 +112,16 @@ export function PhotosCard({ photos }: Props) {
 
   return (
     <Card>
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        title={pendingDelete ? `Delete the photo of ${shortDate(pendingDelete.takenAt)}?` : ''}
+        confirmLabel="Delete"
+        onConfirm={() => (pendingDelete ? deletePhoto(pendingDelete) : undefined)}
+        pending={busy}
+      />
       <CardHeader className="pb-3">
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <Camera className="size-4" />
@@ -161,8 +172,8 @@ export function PhotosCard({ photos }: Props) {
 
         {photos.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No progress photos yet. Photos are stored locally on your server
-            and only visible to you. Upload the first one to start the timeline.
+            No progress photos yet. Photos are stored locally on your server and only visible to
+            you. Upload the first one to start the timeline.
           </p>
         ) : (
           <>
@@ -186,7 +197,7 @@ export function PhotosCard({ photos }: Props) {
                     size="icon"
                     className="absolute right-1.5 top-1.5 size-9 opacity-90 shadow-sm"
                     aria-label={`Delete photo of ${shortDate(p.takenAt)}`}
-                    onClick={() => void deletePhoto(p)}
+                    onClick={() => setPendingDelete(p)}
                     disabled={busy}
                   >
                     <Trash2 className="size-3.5" />
@@ -202,14 +213,22 @@ export function PhotosCard({ photos }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   {(
                     [
-                      { label: 'Before', photo: before, value: beforeId || oldest?.id || '', set: setBeforeId },
-                      { label: 'After', photo: after, value: afterId || newest?.id || '', set: setAfterId },
+                      {
+                        label: 'Before',
+                        photo: before,
+                        value: beforeId || oldest?.id || '',
+                        set: setBeforeId,
+                      },
+                      {
+                        label: 'After',
+                        photo: after,
+                        value: afterId || newest?.id || '',
+                        set: setAfterId,
+                      },
                     ] as const
                   ).map(({ label, photo, value, set }) => (
                     <div key={label} className="flex flex-col gap-1">
-                      <Label htmlFor={`progress-photo-${label.toLowerCase()}`}>
-                        {label}
-                      </Label>
+                      <Label htmlFor={`progress-photo-${label.toLowerCase()}`}>{label}</Label>
                       <select
                         id={`progress-photo-${label.toLowerCase()}`}
                         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

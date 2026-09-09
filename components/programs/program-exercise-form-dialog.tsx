@@ -275,9 +275,14 @@ export function ProgramExerciseFormDialog(props: Props) {
                     max="2"
                     step="0.05"
                     placeholder={t('automatic')}
-                    {...form.register('fatigueRate', {
-                      setValueAs: (value) => (value === '' ? null : Number(value)),
-                    })}
+                    value={form.watch('fatigueRate') ?? ''}
+                    onChange={(e) =>
+                      form.setValue(
+                        'fatigueRate',
+                        e.target.value === '' ? null : Number(e.target.value),
+                        { shouldValidate: true },
+                      )
+                    }
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -292,9 +297,14 @@ export function ProgramExerciseFormDialog(props: Props) {
                     max="5"
                     step="0.1"
                     placeholder={t('automatic')}
-                    {...form.register('loadAdjustmentPct', {
-                      setValueAs: (value) => (value === '' ? null : Number(value)),
-                    })}
+                    value={form.watch('loadAdjustmentPct') ?? ''}
+                    onChange={(e) =>
+                      form.setValue(
+                        'loadAdjustmentPct',
+                        e.target.value === '' ? null : Number(e.target.value),
+                        { shouldValidate: true },
+                      )
+                    }
                   />
                 </div>
               </div>
@@ -305,6 +315,16 @@ export function ProgramExerciseFormDialog(props: Props) {
               </div>
             </div>
           </details>
+
+          {Object.keys(form.formState.errors).length > 0 && (
+            <ul className="space-y-0.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {Object.entries(form.formState.errors).map(([field, err]) => (
+                <li key={field}>
+                  {field}: {String((err as { message?: string })?.message ?? 'invalid')}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <DialogFooter>
             <Button

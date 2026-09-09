@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ProgramExerciseRow } from '@/components/programs/program-exercise-row';
 import { WorkoutFormDialog } from '@/components/programs/workout-form-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ProgramExerciseFormDialog } from '@/components/programs/program-exercise-form-dialog';
 import { buildSupersetView, smallestFreeGroup } from '@/lib/supersets';
 import { useTrainingName } from '@/components/shared/use-training-name';
@@ -50,9 +51,9 @@ export function WorkoutCard({ workout, catalog }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [addExoOpen, setAddExoOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function handleDelete() {
-    if (!confirm(t('deleteConfirm', { name: trainingName(workout.name) }))) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/workouts/${workout.id}`, { method: 'DELETE' });
@@ -157,7 +158,7 @@ export function WorkoutCard({ workout, catalog }: Props) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={handleDelete}
+                onSelect={() => setConfirmOpen(true)}
                 disabled={deleting}
                 className="text-destructive focus:text-destructive"
               >
@@ -214,6 +215,14 @@ export function WorkoutCard({ workout, catalog }: Props) {
         )}
       </CardContent>
 
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('deleteConfirm', { name: trainingName(workout.name) })}
+        confirmLabel={common('actions.delete')}
+        onConfirm={handleDelete}
+        pending={deleting}
+      />
       <WorkoutFormDialog open={editOpen} onOpenChange={setEditOpen} mode="edit" workout={workout} />
       <ProgramExerciseFormDialog
         open={addExoOpen}

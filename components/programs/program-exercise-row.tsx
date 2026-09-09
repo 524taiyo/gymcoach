@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProgramExerciseFormDialog } from '@/components/programs/program-exercise-form-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { muscleGroupMessageKeys } from '@/i18n/enum-keys';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
 
@@ -49,9 +50,9 @@ export function ProgramExerciseRow({
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function handleDelete() {
-    if (!confirm(t('removeConfirm', { name: exerciseName(programExercise.exercise.name) }))) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/program-exercises/${programExercise.id}`, {
@@ -138,7 +139,7 @@ export function ProgramExerciseRow({
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={handleDelete}
+              onSelect={() => setConfirmOpen(true)}
               disabled={deleting}
               className="text-destructive focus:text-destructive"
             >
@@ -149,6 +150,14 @@ export function ProgramExerciseRow({
         </DropdownMenu>
       </div>
 
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('removeConfirm', { name: exerciseName(programExercise.exercise.name) })}
+        confirmLabel={common('actions.remove')}
+        onConfirm={handleDelete}
+        pending={deleting}
+      />
       <ProgramExerciseFormDialog
         open={editOpen}
         onOpenChange={setEditOpen}

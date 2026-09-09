@@ -86,4 +86,17 @@ describe('programExerciseInputSchema', () => {
       false,
     );
   });
+
+  it('treats blank tuning fields as automatic (null), as the form submits them', () => {
+    const parsed = programExerciseInputSchema.safeParse({
+      ...valid,
+      fatigueRate: '',
+      loadAdjustmentPct: '',
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.fatigueRate).toBeNull();
+      expect(parsed.data.loadAdjustmentPct).toBeNull();
+    }
+  });
 });
