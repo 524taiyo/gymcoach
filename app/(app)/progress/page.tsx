@@ -20,6 +20,7 @@ import { ProgressDashboard } from '@/components/progress/progress-dashboard';
 import { ConsistencyCard } from '@/components/progress/consistency-card';
 import { DeloadBanner } from '@/components/progress/deload-banner';
 import { BodyweightCard } from '@/components/progress/bodyweight-card';
+import { SectionTabs } from '@/components/shared/section-tabs';
 
 interface SearchParams {
   exerciseId?: string;
@@ -33,6 +34,7 @@ export default async function ProgressPage(
   }
 ) {
   const t = await getTranslations('progress');
+  const nav = await getTranslations('navigation');
   const searchParams = await props.searchParams;
   const auth = await requireSession();
 
@@ -226,6 +228,15 @@ export default async function ProgressPage(
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
         <PageHeader illustration="progress" title={t('title')} />
+
+        {/* Reached from the history tab, so it carries the same segmented pair. */}
+        <SectionTabs
+          current="/progress"
+          tabs={[
+            { href: '/history', label: nav('history') },
+            { href: '/progress', label: nav('progress') },
+          ]}
+        />
 
         <BodyweightCard
           entries={bodyweightEntries.map((e) => ({

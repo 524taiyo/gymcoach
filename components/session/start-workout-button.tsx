@@ -11,10 +11,15 @@ export function StartWorkoutButton({
   workoutId,
   gymId,
   disabled,
+  label,
 }: {
   workoutId: string;
   gymId?: string | null;
   disabled?: boolean;
+  // Overrides the default "start this session". Home names the action after
+  // the single menu it offers ("Start"), the picker list needs the longer
+  // "start THIS one" to tell its rows apart.
+  label?: string;
 }) {
   const t = useTranslations('session');
   const router = useRouter();
@@ -44,7 +49,7 @@ export function StartWorkoutButton({
       className="min-h-tap w-full text-base"
     >
       <Play className="size-5" />
-      <span className="ml-2">{isPending ? t('starting') : t('startThis')}</span>
+      <span className="ml-2">{isPending ? t('starting') : (label ?? t('startThis'))}</span>
     </Button>
   );
 }

@@ -28,6 +28,10 @@ interface Props {
   // Live session attached from the session runner (issue #111), or null for a
   // normal chat. Sent with each message so the coach sees the workout so far.
   sessionId?: string | null;
+  // Planned workout attached from home ("ask about this menu"), or null. Only
+  // one of the two is ever set; the server drops it when a session is live.
+  workoutId?: string | null;
+  workoutName?: string | null;
   hasApiKey: boolean;
   providerLabel: string;
   apiKeyEnvVar: string;
@@ -38,6 +42,8 @@ export function ChatClient({
   initialActiveId,
   initialMessages,
   sessionId = null,
+  workoutId = null,
+  workoutName = null,
   hasApiKey,
   providerLabel,
   apiKeyEnvVar,
@@ -85,6 +91,7 @@ export function ChatClient({
           conversationId: activeId ?? undefined,
           message: text,
           sessionId: sessionId ?? undefined,
+          workoutId: workoutId ?? undefined,
         }),
       });
 
@@ -176,6 +183,18 @@ export function ChatClient({
         </div>
       )}
 
+      {!sessionId && workoutId && (
+        <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+          <WorkoutIcon className="size-4 shrink-0 text-primary-ink" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {t('plannedWorkout', { name: workoutName ?? '' })}
+            </span>{' '}
+            {t('plannedWorkoutDescription')}
+          </p>
+        </div>
+      )}
+
       <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         <Button
           type="button"
@@ -212,7 +231,9 @@ export function ChatClient({
           <p className="m-auto max-w-sm text-center text-sm text-muted-foreground">
             {sessionId
               ? t('emptySession')
-              : t('empty')}
+              : workoutId
+                ? t('emptyPlannedWorkout')
+                : t('empty')}
           </p>
         ) : (
           messages.map((m, i) => (
@@ -221,7 +242,7 @@ export function ChatClient({
               className={cn(
                 'min-w-0 max-w-[90%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%]',
                 m.role === 'user'
-                  ? 'self-end bg-primary text-primary-foreground'
+                  ? 'self-end bg-primary-strong text-primary-foreground'
                   : 'self-start bg-muted',
               )}
             >

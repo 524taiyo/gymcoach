@@ -3,6 +3,7 @@ import {
   applyBodyweight,
   best1RM,
   effectiveWeight,
+  estimate1RM,
   dailyConditioning,
   exerciseProgress,
   isStalled,
@@ -77,6 +78,11 @@ export interface CoachPayload {
   // chat is opened from the session runner with a session the user owns.
   // Additive and input-side only; the output contract is unchanged.
   currentSession?: CurrentSessionContext;
+  // The workout the user is ABOUT to do, attached when the chat is opened from
+  // the "ask about this menu" button on home with a workout the user owns.
+  // Same additive, input-side-only contract as currentSession; the two are
+  // mutually exclusive in practice (a live session wins).
+  plannedWorkout?: PlannedWorkoutContext;
   // All-time personal records per strength exercise (issue #212), via the SAME
   // lib/records.ts exerciseRecords derivation the progress page's records board
   // uses: heaviest working set ever (weight x reps) and best estimated 1RM ever,
@@ -202,6 +208,44 @@ export interface CurrentSessionContext {
     sleepQuality: number;
     soreness: Record<string, number> | null;
   } | null;
+}
+
+// Compact snapshot of a workout the user has NOT started yet: what the program
+// prescribes, and how each of those exercises last went. Enough to answer "is
+// this too much today?" or "what load should I open with?" before the first
+// set, without dumping history - the rest of the payload already carries the
+// week-level picture. Weights are effective loads (bodyweight included),
+// consistent with the rest of the payload.
+export interface PlannedWorkoutContext {
+  workoutName: string;
+  programName: string | null;
+  // 1 (Monday) .. 7 (Sunday), or null when the workout floats in the week.
+  dayOfWeek: number | null;
+  exercises: Array<{
+    exerciseName: string;
+    muscleGroup: string;
+    usesBodyweight: boolean;
+    target: {
+      targetSets: number;
+      targetRepsMin: number;
+      targetRepsMax: number;
+      targetRIR: number;
+      restSec: number;
+    };
+    // The top working set of the last session that trained this exercise, or
+    // null when it has never been trained (or not within the lookback).
+    lastPerformed: {
+      // ISO date (YYYY-MM-DD) of that session.
+      date: string;
+      daysAgo: number;
+      topSetWeight: number;
+      topSetReps: number;
+      rir: number | null;
+      estimated1RM: number;
+      // Working sets logged for the exercise in that session.
+      setCount: number;
+    } | null;
+  }>;
 }
 
 interface ReadinessSummary {
@@ -981,6 +1025,139 @@ export async function buildCurrentSessionContext(
     startedAt: session.startedAt.toISOString(),
     exercises,
     readinessToday,
+  };
+}
+
+// ============================================================
+// Planned workout context for the pre-session chat
+// ============================================================
+
+// How far back to look for the last time a planned exercise was trained. Past
+// this, "last time" stops being a useful anchor for today's load.
+const PLANNED_WORKOUT_LOOKBACK_DAYS = 120;
+
+// Builds the compact plannedWorkout section. Ownership-checked through the
+// program relation: returns null when the workout does not exist or belongs to
+// another user, so a tampered workoutId silently degrades to a normal chat
+// instead of erroring or leaking - same contract as
+// buildCurrentSessionContext.
+export async function buildPlannedWorkoutContext(
+  userId: string,
+  workoutId: string,
+  now: Date = new Date(),
+): Promise<PlannedWorkoutContext | null> {
+  const [workout, user] = await Promise.all([
+    db.workout.findFirst({
+      where: { id: workoutId, program: { userId } },
+      include: {
+        program: { select: { name: true } },
+        exercises: {
+          orderBy: { order: 'asc' },
+          include: {
+            exercise: {
+              select: { id: true, name: true, muscleGroup: true, usesBodyweight: true },
+            },
+          },
+        },
+      },
+    }),
+    db.user.findUnique({ where: { id: userId }, select: { bodyweight: true } }),
+  ]);
+  if (!workout) return null;
+  const bodyweight = user?.bodyweight ?? null;
+
+  const exerciseIds = workout.exercises.map((pe) => pe.exerciseId);
+  const since = new Date(now.getTime() - PLANNED_WORKOUT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+
+  // Working sets of these exercises across the user's finished sessions,
+  // newest session first. Scoped through the session relation so it can only
+  // ever read the caller's own history.
+  const rows =
+    exerciseIds.length === 0
+      ? []
+      : await db.set.findMany({
+          where: {
+            exerciseId: { in: exerciseIds },
+            isWarmup: false,
+            session: { userId, finishedAt: { not: null }, startedAt: { gte: since } },
+          },
+          orderBy: { session: { startedAt: 'desc' } },
+          select: {
+            exerciseId: true,
+            sessionId: true,
+            weight: true,
+            reps: true,
+            rir: true,
+            durationSec: true,
+            session: { select: { startedAt: true } },
+          },
+        });
+
+  // Keep, per exercise, only the sets of the most recent session that trained
+  // it. Rows are ordered newest-session-first, so the first session id seen
+  // for an exercise is the one to keep and later ones are older.
+  type Row = (typeof rows)[number];
+  const latest = new Map<string, { sessionId: string; startedAt: Date; sets: Row[] }>();
+  for (const row of rows) {
+    // Cardio sets carry no load to anchor a strength recommendation on.
+    if (isCardioSet(row)) continue;
+    const seen = latest.get(row.exerciseId);
+    if (!seen) {
+      latest.set(row.exerciseId, {
+        sessionId: row.sessionId,
+        startedAt: row.session.startedAt,
+        sets: [row],
+      });
+    } else if (seen.sessionId === row.sessionId) {
+      seen.sets.push(row);
+    }
+  }
+
+  const exercises: PlannedWorkoutContext['exercises'] = workout.exercises.map((pe) => {
+    const seen = latest.get(pe.exerciseId);
+    let lastPerformed: PlannedWorkoutContext['exercises'][number]['lastPerformed'] = null;
+
+    if (seen && seen.sets.length > 0) {
+      // Top set = heaviest effective load, reps as the tie-break.
+      const top = seen.sets.reduce((best, s) => {
+        const bestWeight = effectiveWeight(best.weight, pe.exercise.usesBodyweight, bodyweight);
+        const weight = effectiveWeight(s.weight, pe.exercise.usesBodyweight, bodyweight);
+        if (weight > bestWeight) return s;
+        if (weight === bestWeight && s.reps > best.reps) return s;
+        return best;
+      });
+      const topWeight = effectiveWeight(top.weight, pe.exercise.usesBodyweight, bodyweight);
+      lastPerformed = {
+        date: seen.startedAt.toISOString().slice(0, 10),
+        daysAgo: Math.floor((now.getTime() - seen.startedAt.getTime()) / (24 * 60 * 60 * 1000)),
+        topSetWeight: topWeight,
+        topSetReps: top.reps,
+        rir: top.rir,
+        estimated1RM: +estimate1RM(topWeight, top.reps).toFixed(1),
+        setCount: seen.sets.length,
+      };
+    }
+
+    return {
+      exerciseName: pe.exercise.name,
+      muscleGroup: pe.exercise.muscleGroup,
+      usesBodyweight: pe.exercise.usesBodyweight,
+      target: {
+        targetSets: pe.targetSets,
+        targetRepsMin: pe.targetRepsMin,
+        targetRepsMax: pe.targetRepsMax,
+        targetRIR: pe.targetRIR,
+        restSec: pe.restSec,
+      },
+      lastPerformed,
+    };
+  });
+
+  return {
+    workoutName: workout.name,
+    programName: workout.program?.name ?? null,
+    dayOfWeek: workout.dayOfWeek,
+    exercises,
   };
 }
 

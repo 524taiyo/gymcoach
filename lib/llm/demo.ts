@@ -101,6 +101,14 @@ const CHAT_IN_SESSION = `Got it - looking at your live session.
 
 Log how the next set feels and ask me again if it does not improve.`;
 
+const CHAT_PLANNED_WORKOUT = `Got it - looking at the menu you are about to train.
+
+- **Volume**: the exercise count and target sets match what you handled last time, so this menu is a fair ask today.
+- **Opening loads**: start each lift at the top set you hit last time; add ~2.5 kg only where you finished at the top of the rep range with RIR 2 or more.
+- **If something feels off**: swap the accessory rather than the main lift, and keep the programmed rest.
+
+Start it and log the first set - ask me again if the load reads wrong.`;
+
 const CHAT = `Short version: your bench is moving and your chest volume is in a good spot.
 
 - **Bench press**: estimated 1RM is trending up (about +6% over the last 8 weeks) while your RIR stays around 2, so the stimulus is sustainable. Keep adding ~2.5 kg once you hit the top of the rep range on all sets.
@@ -186,6 +194,9 @@ function cannedResponse(system: string, userText = ''): string {
   // only when a live session is attached (the quoted form cannot appear in the
   // stable prompt text, which mentions currentSession without quotes).
   if (system.includes('"currentSession"')) return CHAT_IN_SESSION;
+  // Pre-session chat: same trick with the "plannedWorkout" key, present only
+  // when home attached a workout that has not started yet.
+  if (system.includes('"plannedWorkout"')) return CHAT_PLANNED_WORKOUT;
   return CHAT; // conversational coach
 }
 

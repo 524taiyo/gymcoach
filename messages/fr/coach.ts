@@ -28,6 +28,11 @@ export const coach = {
       'Le coach voit les séries déjà enregistrées et les objectifs du programme pour cette séance.',
     emptySession:
       'Une question en pleine séance ? Demandez conseil sur votre prochaine série, une charge qui semble anormale ou un changement d’exercice.',
+    plannedWorkout: '{name} attachée.',
+    plannedWorkoutDescription:
+      'Le coach voit les exercices de cette séance, leurs objectifs et la dernière fois que chacun a été travaillé.',
+    emptyPlannedWorkout:
+      'Sur le point de vous entraîner ? Demandez si le volume convient aujourd’hui, par quelle charge commencer ou quoi remplacer.',
     empty:
       'Posez vos questions : sortir d’un plateau, volume d’entraînement, progression, récupération ou adaptation à une blessure.',
   },

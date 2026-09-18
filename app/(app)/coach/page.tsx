@@ -1,4 +1,7 @@
+import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
+import { ChatIcon, WorkoutIcon } from '@/components/icons';
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
@@ -14,6 +17,7 @@ import { CoachNoteCard } from '@/components/coach/coach-note-card';
 
 export default async function CoachPage() {
   const t = await getTranslations('coach');
+  const nav = await getTranslations('navigation');
   const auth = await requireSession();
 
   const [history, activeProgram, coachPayload] = await Promise.all([
@@ -85,6 +89,26 @@ export default async function CoachPage() {
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <PageHeader illustration="coach" title={t('title')} description={t('description')} />
+
+        {/* /chat, /programs and /exercises lost their own tabs (three-tab
+            bar). This row is their entry point on the coach side; home links
+            to the same places for the paths used mid-week. */}
+        <nav className="grid grid-cols-3 gap-2">
+          {[
+            { href: '/chat', label: nav('chat'), Icon: ChatIcon },
+            { href: '/programs', label: nav('programs'), Icon: WorkoutIcon },
+            { href: '/exercises', label: nav('catalog'), Icon: BookOpen },
+          ].map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex min-h-tap flex-col items-center justify-center gap-1.5 rounded-card border border-border/80 bg-card p-3 text-xs font-medium shadow-card transition-colors hover:bg-accent/60"
+            >
+              <Icon className="size-5 text-primary-ink" />
+              <span className="text-center leading-tight">{label}</span>
+            </Link>
+          ))}
+        </nav>
 
         <CoachContextCard summary={coachContext} />
 

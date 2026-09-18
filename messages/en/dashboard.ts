@@ -1,4 +1,14 @@
 export const dashboard = {
+  // Today's menu: the default path through the app.
+  coachBuilt: 'Built by your coach',
+  workoutMeta:
+    '{count, plural, one {# exercise} other {# exercises}} · about {minutes} min',
+  start: 'Start',
+  askAboutMenu: 'Ask about this menu',
+  buildYourOwn: 'Build your own',
+  otherMenu: 'Another menu, or log how you feel',
+  generateProgram: 'Have the coach build a program',
+  recentSessions: 'Recent sessions',
   activeSession: 'Active session',
   sessionFallback: 'Session',
   startedOn: '{name} started on {date}',

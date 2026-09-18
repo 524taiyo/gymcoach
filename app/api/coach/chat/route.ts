@@ -4,7 +4,11 @@ import { db } from '@/lib/db';
 import { ApiError, handleApiError, parseJsonBody, requireApiUserId } from '@/lib/api';
 import { rateLimit } from '@/lib/rate-limit';
 import { getLlmProvider, LlmError } from '@/lib/llm';
-import { buildCoachPayload, buildCurrentSessionContext } from '@/lib/coach';
+import {
+  buildCoachPayload,
+  buildCurrentSessionContext,
+  buildPlannedWorkoutContext,
+} from '@/lib/coach';
 import { CHAT_SYSTEM_PROMPT } from '@/lib/prompts/chat-system-prompt';
 import { deriveConversationTitle } from '@/lib/chat';
 
@@ -14,6 +18,10 @@ const bodySchema = z.object({
   // In-session chat (issue #111): attaches the live workout as context. The
   // session must belong to the caller; a foreign or unknown id is ignored.
   sessionId: z.string().cuid().optional(),
+  // Pre-session chat: attaches a workout the user has not started yet ("ask
+  // about this menu" on home). Same ownership contract as sessionId; ignored
+  // when sessionId is present, since a live session is the better context.
+  workoutId: z.string().cuid().optional(),
 });
 
 // Vercel: allow up to 60 s for the streamed AI response.
@@ -34,7 +42,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const { conversationId: existingId, message, sessionId } = await parseJsonBody(req, bodySchema);
+    const {
+      conversationId: existingId,
+      message,
+      sessionId,
+      workoutId,
+    } = await parseJsonBody(req, bodySchema);
 
     let conversationId: string;
     if (existingId) {
@@ -76,6 +89,11 @@ export async function POST(req: Request) {
     if (sessionId) {
       const currentSession = await buildCurrentSessionContext(userId, sessionId);
       if (currentSession) payload.currentSession = currentSession;
+    } else if (workoutId) {
+      // Same deal for a workout that has not started yet: ownership is
+      // enforced in the builder, so a bad workoutId stays a normal chat.
+      const plannedWorkout = await buildPlannedWorkoutContext(userId, workoutId);
+      if (plannedWorkout) payload.plannedWorkout = plannedWorkout;
     }
     const system = `${CHAT_SYSTEM_PROMPT}\n\n# Trainee's current training data (JSON)\n${JSON.stringify(payload, null, 2)}`;
 

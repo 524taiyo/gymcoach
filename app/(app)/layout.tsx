@@ -7,11 +7,16 @@ import { SyncBootstrap } from '@/components/shared/sync-bootstrap';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { LanguageSelector } from '@/components/shared/language-selector';
 import { BrandMark } from '@/components/shared/brand-mark';
+import { ProfileIcon } from '@/components/icons';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 
-// Layout for protected routes (post-login). Phones get a fixed bottom tab bar
-// (thumb reach); md and up keep the pill row under the header.
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+// Layout for protected routes (post-login). One fixed bottom tab bar at every
+// width (thumb reach on the phone this is used on), and the header carries the
+// profile icon that leads to /settings.
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const t = await getTranslations('navigation');
+
   return (
     <div className="flex min-h-screen flex-col">
       <SyncBootstrap />
@@ -27,15 +32,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <QuickTimer />
             <LanguageSelector />
             <ThemeToggle />
+            <Link
+              href="/settings"
+              aria-label={t('settings')}
+              title={t('settings')}
+              className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              <ProfileIcon className="size-5" />
+            </Link>
             <LogoutButton />
           </div>
         </div>
-        <NavLinks variant="top" />
       </header>
-      <div className="flex flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
       </div>
-      <NavLinks variant="bottom" />
+      <NavLinks />
     </div>
   );
 }

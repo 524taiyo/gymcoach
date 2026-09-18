@@ -2,6 +2,14 @@ import { dashboard as english } from '../en/dashboard';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const dashboard = {
+  coachBuilt: 'コーチが組んだメニュー',
+  workoutMeta: '{count}種目・約{minutes}分',
+  start: '開始する',
+  askAboutMenu: 'このメニューを相談する',
+  buildYourOwn: '自分で組む',
+  otherMenu: '別のメニューを選ぶ・調子を記録する',
+  generateProgram: 'コーチにプログラムを作ってもらう',
+  recentSessions: '直近の記録',
   activeSession: 'アクティブセッション',
   sessionFallback: 'セッション',
   startedOn: '{name} - {date}開始',

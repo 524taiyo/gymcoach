@@ -25,6 +25,11 @@ export const coach = {
       'The coach sees the sets logged so far and the program targets for this workout.',
     emptySession:
       'Mid-workout question? Ask about your next set, a load that feels off, or an exercise swap.',
+    plannedWorkout: '{name} attached.',
+    plannedWorkoutDescription:
+      'The coach sees the exercises in this menu, their targets, and how each one last went.',
+    emptyPlannedWorkout:
+      'About to train? Ask whether the volume fits today, what load to open with, or what to swap.',
     empty:
       'Ask about breaking a plateau, training volume, progression, recovery or injury adjustments.',
   },

@@ -46,10 +46,14 @@ const config: Config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          // The accent as TEXT or icon colour. The brand lime is too light to
-          // read on white, so text uses a deeper green; dark mode maps it back
-          // to the lime itself.
+          // The accent as TEXT or icon colour. The brand terracotta only
+          // reaches 3.9:1 on white, so text uses a deeper shade; dark mode
+          // maps it back to the lifted terracotta.
           ink: 'hsl(var(--primary-ink))',
+          // Solid fills that carry a label (buttons, chat bubbles, selected
+          // chips). Untexted accents - progress bars, dots, rings - stay on
+          // DEFAULT so the exact brand colour is what the eye reads.
+          strong: 'hsl(var(--primary-strong))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -80,6 +84,8 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        // Card surfaces sit one step softer than the 12px controls.
+        card: '14px',
       },
       minHeight: {
         // Minimum tap target, deliberately 4rem (64px) rather than the usual

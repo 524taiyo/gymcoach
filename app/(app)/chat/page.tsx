@@ -1,6 +1,7 @@
 import { ChatIcon } from '@/components/icons';
 import { PageHeader } from '@/components/ui/page-header';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { getTrainingDisplayName } from '@/i18n/training-names';
 import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { getLlmProvider } from '@/lib/llm';
@@ -12,6 +13,7 @@ import {
 
 interface SearchParams {
   sessionId?: string;
+  workoutId?: string;
 }
 
 export default async function ChatPage(
@@ -20,6 +22,7 @@ export default async function ChatPage(
   }
 ) {
   const t = await getTranslations('coach');
+  const locale = await getLocale();
   const searchParams = await props.searchParams;
   const auth = await requireSession();
 
@@ -35,6 +38,21 @@ export default async function ChatPage(
     sessionId = owned?.id ?? null;
   }
 
+  // Pre-session chat: home links here with ?workoutId=... to talk about a
+  // workout that has not started yet. Ownership goes through the program
+  // relation, and the same rule applies - a foreign or unknown id degrades to
+  // a normal chat rather than erroring. A live session takes precedence.
+  let workoutId: string | null = null;
+  let workoutName: string | null = null;
+  if (!sessionId && searchParams.workoutId) {
+    const owned = await db.workout.findFirst({
+      where: { id: searchParams.workoutId, program: { userId: auth.userId } },
+      select: { id: true, name: true },
+    });
+    workoutId = owned?.id ?? null;
+    workoutName = owned ? getTrainingDisplayName(owned.name, locale) : null;
+  }
+
   const conversations = await db.conversation.findMany({
     where: { userId: auth.userId },
     orderBy: { updatedAt: 'desc' },
@@ -42,9 +60,9 @@ export default async function ChatPage(
     select: { id: true, title: true, updatedAt: true },
   });
 
-  // With a live session attached, start on a fresh conversation so the
-  // mid-workout question is not appended to an old thread.
-  const active = sessionId ? null : (conversations[0] ?? null);
+  // With a workout attached - live or planned - start on a fresh conversation
+  // so the question about it is not appended to an old thread.
+  const active = sessionId || workoutId ? null : (conversations[0] ?? null);
   let initialMessages: ChatMessage[] = [];
   if (active) {
     const msgs = await db.message.findMany({
@@ -76,6 +94,8 @@ export default async function ChatPage(
           initialActiveId={active?.id ?? null}
           initialMessages={initialMessages}
           sessionId={sessionId}
+          workoutId={workoutId}
+          workoutName={workoutName}
           hasApiKey={provider.isConfigured()}
           providerLabel={provider.label}
           apiKeyEnvVar={provider.apiKeyEnvVar}

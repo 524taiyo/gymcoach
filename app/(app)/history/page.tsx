@@ -12,6 +12,7 @@ import { applyBodyweight, totalVolume } from '@/lib/stats';
 import { formatWeight } from '@/lib/units';
 import { formatDistance, formatDuration } from '@/lib/cardio';
 import { HistoryFilters } from '@/components/history/history-filters';
+import { SectionTabs } from '@/components/shared/section-tabs';
 import { getExerciseDisplayName } from '@/i18n/exercise-names';
 import { getTrainingDisplayName } from '@/i18n/training-names';
 
@@ -23,6 +24,7 @@ interface SearchParams {
 export default async function HistoryPage(props: { searchParams: Promise<SearchParams> }) {
   const t = await getTranslations('history');
   const common = await getTranslations('common');
+  const nav = await getTranslations('navigation');
   const locale = await getLocale();
   const format = await getFormatter();
   const searchParams = await props.searchParams;
@@ -88,6 +90,15 @@ export default async function HistoryPage(props: { searchParams: Promise<SearchP
     <main className="flex-1 px-4 py-6">
       <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <PageHeader illustration="history" title={t('title')} />
+
+        {/* /progress lost its own tab (three-tab bar); it lives in here now. */}
+        <SectionTabs
+          current="/history"
+          tabs={[
+            { href: '/history', label: nav('history') },
+            { href: '/progress', label: nav('progress') },
+          ]}
+        />
 
         <HistoryFilters
           programs={programs}

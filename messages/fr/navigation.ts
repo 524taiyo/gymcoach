@@ -2,6 +2,7 @@ import { navigation as english } from '../en/navigation';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const navigation = {
+  today: "Aujourd'hui",
   home: 'Accueil',
   history: 'Historique',
   progress: 'Progrès',

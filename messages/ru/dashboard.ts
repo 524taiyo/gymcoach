@@ -2,6 +2,15 @@ import { dashboard as english } from '../en/dashboard';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const dashboard = {
+  coachBuilt: 'Составлено тренером',
+  workoutMeta:
+    '{count, plural, one {# упражнение} few {# упражнения} other {# упражнений}} · около {minutes} мин',
+  start: 'Начать',
+  askAboutMenu: 'Обсудить эту тренировку',
+  buildYourOwn: 'Составить самому',
+  otherMenu: 'Другая тренировка или отметка самочувствия',
+  generateProgram: 'Попросить тренера составить программу',
+  recentSessions: 'Последние тренировки',
   activeSession: 'Активная тренировка',
   sessionFallback: 'Тренировка',
   startedOn: '{name}, начало: {date}',

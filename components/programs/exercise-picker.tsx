@@ -77,7 +77,7 @@ export function ExercisePicker({ catalog, value, onChange, inputId, onCreate }: 
             className={cn(
               'shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
               tab === part
-                ? 'border-primary bg-primary text-primary-foreground'
+                ? 'border-primary-strong bg-primary-strong text-primary-foreground'
                 : 'border-border text-muted-foreground hover:bg-accent',
             )}
           >
