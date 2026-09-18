@@ -43,8 +43,21 @@ export default async function ProgressPage(
   since.setUTCHours(0, 0, 0, 0);
   since.setUTCDate(since.getUTCDate() - RECENT_WEEKS * 7);
 
-  // All exercises with at least one non-warmup set in the period.
-  const [exercisesWithSets, user] = await Promise.all([
+  const readinessSince = new Date();
+  readinessSince.setUTCDate(readinessSince.getUTCDate() - DELOAD_READINESS_MAX_AGE_DAYS);
+
+  // One batch instead of four sequential stages. Every read below is
+  // independent of the others' results, and on a database a continent away
+  // each extra stage was ~100 ms of pure latency.
+  const [
+    exercisesWithSets,
+    user,
+    finishedSessions,
+    windowSets,
+    recentCheckins,
+    bodyweightEntries,
+  ] = await Promise.all([
+    // All exercises with at least one non-warmup set in the period.
     db.exercise.findMany({
       where: {
         userId: auth.userId,
@@ -64,6 +77,49 @@ export default async function ProgressPage(
       where: { id: auth.userId },
       select: { bodyweight: true, unit: true, weeklyFrequency: true, deloadUntil: true },
     }),
+    // Finished sessions over the window, for the consistency card.
+    db.session.findMany({
+      where: {
+        userId: auth.userId,
+        finishedAt: { not: null },
+        startedAt: { gte: since },
+      },
+      select: { startedAt: true },
+    }),
+    // Every non-warmup strength set in the window, for the per-exercise recap
+    // below. One query grouped in memory, not one query per exercise: the
+    // fan-out cost a round trip for every exercise the user trains.
+    db.set.findMany({
+      where: {
+        isWarmup: false,
+        completedAt: { gte: since },
+        session: { userId: auth.userId },
+        exercise: { category: { not: 'CARDIO' } },
+      },
+      orderBy: { completedAt: 'asc' },
+      select: {
+        exerciseId: true,
+        weight: true,
+        reps: true,
+        isWarmup: true,
+        durationSec: true,
+        sessionId: true,
+        session: { select: { startedAt: true } },
+      },
+    }),
+    // Deload recommendation input.
+    db.readinessCheckin.findMany({
+      where: { userId: auth.userId, createdAt: { gte: readinessSince } },
+      orderBy: { createdAt: 'desc' },
+      take: DELOAD_READINESS_LOOKBACK,
+      select: { readiness: true },
+    }),
+    // Bodyweight trend.
+    db.bodyweightEntry.findMany({
+      where: { userId: auth.userId, measuredAt: { gte: since } },
+      orderBy: { measuredAt: 'desc' },
+      select: { id: true, weightKg: true, measuredAt: true },
+    }),
   ]);
   const bodyweight = user?.bodyweight ?? null;
   const unit = user?.unit ?? 'KG';
@@ -72,15 +128,6 @@ export default async function ProgressPage(
     exercisesWithSets.map((e) => [e.id, e.usesBodyweight]),
   );
 
-  // Finished sessions over the window, for the consistency card.
-  const finishedSessions = await db.session.findMany({
-    where: {
-      userId: auth.userId,
-      finishedAt: { not: null },
-      startedAt: { gte: since },
-    },
-    select: { startedAt: true },
-  });
   const consistency = trainingConsistency(
     finishedSessions.map((s) => s.startedAt),
     { weeklyFrequency: user?.weeklyFrequency ?? null, windowWeeks: RECENT_WEEKS },
@@ -138,25 +185,15 @@ export default async function ProgressPage(
   const selectedBestE1RM = best1RM(adjustedExerciseSets);
 
   // Recap: per-exercise stall detection, used for deload recommendation.
-  const recapRows = await Promise.all(
-    exercisesWithSets.map(async (exo) => {
-      const sets = await db.set.findMany({
-        where: {
-          exerciseId: exo.id,
-          isWarmup: false,
-          completedAt: { gte: since },
-          session: { userId: auth.userId },
-        },
-        orderBy: { completedAt: 'asc' },
-        select: {
-          weight: true,
-          reps: true,
-          isWarmup: true,
-          durationSec: true,
-          sessionId: true,
-          session: { select: { startedAt: true } },
-        },
-      });
+  const setsByExerciseId = new Map<string, typeof windowSets>();
+  for (const s of windowSets) {
+    const list = setsByExerciseId.get(s.exerciseId);
+    if (list) list.push(s);
+    else setsByExerciseId.set(s.exerciseId, [s]);
+  }
+
+  const recapRows = exercisesWithSets.map((exo) => {
+      const sets = setsByExerciseId.get(exo.id) ?? [];
       const points = exerciseProgress(
         applyBodyweight(
           sets.map((s) => ({
@@ -189,30 +226,10 @@ export default async function ProgressPage(
         e1rmDelta: +(last.estimated1RM - first.estimated1RM).toFixed(1),
         stalled: isStalled(points.map((p) => p.estimated1RM)),
       };
-    }),
-  );
+  });
   const recap = recapRows.filter(
     (r): r is NonNullable<typeof r> => r !== null,
   );
-
-  // Deload recommendation.
-  const readinessSince = new Date();
-  readinessSince.setUTCDate(
-    readinessSince.getUTCDate() - DELOAD_READINESS_MAX_AGE_DAYS,
-  );
-  const recentCheckins = await db.readinessCheckin.findMany({
-    where: { userId: auth.userId, createdAt: { gte: readinessSince } },
-    orderBy: { createdAt: 'desc' },
-    take: DELOAD_READINESS_LOOKBACK,
-    select: { readiness: true },
-  });
-
-  // Bodyweight trend.
-  const bodyweightEntries = await db.bodyweightEntry.findMany({
-    where: { userId: auth.userId, measuredAt: { gte: since } },
-    orderBy: { measuredAt: 'desc' },
-    select: { id: true, weightKg: true, measuredAt: true },
-  });
 
   const deload = recommendDeload({
     stalledExerciseNames: recap

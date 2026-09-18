@@ -151,32 +151,79 @@ export async function getHomeInsight(
   const since = new Date(now);
   since.setUTCDate(since.getUTCDate() - INSIGHT_WINDOW_WEEKS * 7);
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { bodyweight: true },
-  });
-  const bodyweight = user?.bodyweight ?? null;
+  // Recent readiness check-ins feed the deload recommendation's low-readiness arm.
+  const readinessSince = new Date(now);
+  readinessSince.setUTCDate(readinessSince.getUTCDate() - DELOAD_READINESS_MAX_AGE_DAYS);
+  const weekStart = isoWeekStart(now);
 
-  // Recent non-warmup strength sets, for stall detection. Grouped by exercise
-  // in memory (one query) rather than per-exercise queries.
-  const recentSets = await db.set.findMany({
-    where: {
-      isWarmup: false,
-      completedAt: { gte: since },
-      session: { userId },
-      exercise: { category: { not: 'CARDIO' } },
-    },
-    orderBy: { completedAt: 'asc' },
-    select: {
-      weight: true,
-      reps: true,
-      isWarmup: true,
-      durationSec: true,
-      sessionId: true,
-      session: { select: { startedAt: true } },
-      exercise: { select: { name: true, usesBodyweight: true } },
-    },
-  });
+  // One round trip, not six. None of these reads depends on another's result -
+  // the PR check needs the last session's DATE to compare against, not to
+  // build its query - so they all go out together. On a database a continent
+  // away each sequential await was ~100 ms of pure latency.
+  const [user, recentSets, checkins, lastSession, recordSets, thisWeekSessions] =
+    await Promise.all([
+      db.user.findUnique({
+        where: { id: userId },
+        select: { bodyweight: true },
+      }),
+      // Recent non-warmup strength sets, for stall detection. Grouped by
+      // exercise in memory (one query) rather than per-exercise queries.
+      db.set.findMany({
+        where: {
+          isWarmup: false,
+          completedAt: { gte: since },
+          session: { userId },
+          exercise: { category: { not: 'CARDIO' } },
+        },
+        orderBy: { completedAt: 'asc' },
+        select: {
+          weight: true,
+          reps: true,
+          isWarmup: true,
+          durationSec: true,
+          sessionId: true,
+          session: { select: { startedAt: true } },
+          exercise: { select: { name: true, usesBodyweight: true } },
+        },
+      }),
+      db.readinessCheckin.findMany({
+        where: { userId, createdAt: { gte: readinessSince } },
+        orderBy: { createdAt: 'desc' },
+        take: DELOAD_READINESS_LOOKBACK,
+        select: { readiness: true },
+      }),
+      db.session.findFirst({
+        where: { userId, finishedAt: { not: null } },
+        orderBy: { startedAt: 'desc' },
+        select: { startedAt: true },
+      }),
+      // All-time sets, for the personal records. Only used when there is a
+      // last session to compare against, but fetching it conditionally would
+      // cost an extra sequential round trip to learn that.
+      db.set.findMany({
+        where: {
+          isWarmup: false,
+          session: { userId },
+          exercise: { category: { not: 'CARDIO' } },
+        },
+        orderBy: { session: { startedAt: 'asc' } },
+        select: {
+          weight: true,
+          reps: true,
+          isWarmup: true,
+          durationSec: true,
+          exercise: { select: { name: true, usesBodyweight: true } },
+          session: { select: { startedAt: true } },
+        },
+      }),
+      // Distinct training days in the current ISO week.
+      db.session.findMany({
+        where: { userId, finishedAt: { not: null }, startedAt: { gte: weekStart } },
+        select: { startedAt: true },
+      }),
+    ]);
+
+  const bodyweight = user?.bodyweight ?? null;
 
   const byExercise = new Map<
     string,
@@ -212,16 +259,6 @@ export async function getHomeInsight(
     }
   }
 
-  // Recent readiness check-ins feed the deload recommendation's low-readiness arm.
-  const readinessSince = new Date(now);
-  readinessSince.setUTCDate(readinessSince.getUTCDate() - DELOAD_READINESS_MAX_AGE_DAYS);
-  const checkins = await db.readinessCheckin.findMany({
-    where: { userId, createdAt: { gte: readinessSince } },
-    orderBy: { createdAt: 'desc' },
-    take: DELOAD_READINESS_LOOKBACK,
-    select: { readiness: true },
-  });
-
   const deload = recommendDeload({
     stalledExerciseNames,
     recentReadiness: checkins.map((c) => c.readiness),
@@ -230,29 +267,8 @@ export async function getHomeInsight(
   // A fresh personal record: an all-time record (over full history) whose date
   // falls on the user's most recent finished session.
   let recentPR: HomeInsightInput['recentPR'] = null;
-  const lastSession = await db.session.findFirst({
-    where: { userId, finishedAt: { not: null } },
-    orderBy: { startedAt: 'desc' },
-    select: { startedAt: true },
-  });
   if (lastSession) {
     const lastDay = lastSession.startedAt.toISOString().slice(0, 10);
-    const recordSets = await db.set.findMany({
-      where: {
-        isWarmup: false,
-        session: { userId },
-        exercise: { category: { not: 'CARDIO' } },
-      },
-      orderBy: { session: { startedAt: 'asc' } },
-      select: {
-        weight: true,
-        reps: true,
-        isWarmup: true,
-        durationSec: true,
-        exercise: { select: { name: true, usesBodyweight: true } },
-        session: { select: { startedAt: true } },
-      },
-    });
     const records = exerciseRecords(
       recordSets.map((s) => ({
         weight:
@@ -272,12 +288,6 @@ export async function getHomeInsight(
     else if (e1rmPR) recentPR = { exerciseName: e1rmPR.exerciseName, kind: 'e1rm' };
   }
 
-  // Distinct training days in the current ISO week.
-  const weekStart = isoWeekStart(now);
-  const thisWeekSessions = await db.session.findMany({
-    where: { userId, finishedAt: { not: null }, startedAt: { gte: weekStart } },
-    select: { startedAt: true },
-  });
   const days = new Set(thisWeekSessions.map((s) => s.startedAt.toISOString().slice(0, 10)));
   const trainingDaysThisWeek = thisWeekSessions.length > 0 ? days.size : null;
 

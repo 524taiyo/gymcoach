@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { DailyTipCard } from '@/components/dashboard/daily-tip-card';
+import { HomeInsightCard } from '@/components/dashboard/home-insight-card';
 import { RecentSessions } from '@/components/dashboard/recent-sessions';
 import { TodayWorkoutCard } from '@/components/dashboard/today-workout-card';
 import { getFormatter, getLocale, getTranslations } from 'next-intl/server';
@@ -7,10 +9,8 @@ import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getHomeInsight } from '@/lib/home-insight';
 import { estimateWorkoutMinutes, pickTodayWorkout } from '@/lib/today-workout';
 import { getTrainingDisplayName } from '@/i18n/training-names';
-import { Illustration } from '@/components/brand/illustration';
 
 const RECENT_SESSION_COUNT = 3;
 
@@ -78,12 +78,6 @@ export default async function DashboardPage() {
   const todayWorkoutRow = todayWorkout
     ? activeProgram?.workouts.find((w) => w.id === todayWorkout.id)
     : undefined;
-
-  // Proactive coach insight (issue #237): the single highest-priority
-  // deterministic signal (recommended deload / stalled lift / fresh PR /
-  // on-track), composed from the existing derivations. Display-only, no LLM
-  // call; null on a brand-new account with no history.
-  const insight = await getHomeInsight(session.userId, new Date(), locale);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -192,19 +186,11 @@ export default async function DashboardPage() {
 
         <DailyTipCard />
 
-        {insight && (
-          <Link href={insight.href} className="block">
-            <Card className="border-primary/30 bg-primary/5 transition-colors hover:bg-primary/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Illustration name="notification" size={22} />
-                  {insight.title}
-                </CardTitle>
-                <CardDescription>{insight.detail}</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-        )}
+        {/* Streamed: the insight reads the full set history, so waiting on it
+            would hold back the whole page for a card below the fold. */}
+        <Suspense fallback={null}>
+          <HomeInsightCard userId={session.userId} />
+        </Suspense>
       </div>
     </main>
   );
