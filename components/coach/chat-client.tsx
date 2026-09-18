@@ -153,12 +153,9 @@ export function ChatClient({
     setMessages([]);
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      void send();
-    }
-  }
+  // Enter inserts a newline and never sends: on a phone keyboard Enter IS the
+  // newline key, so binding it to submit made multi-line questions impossible
+  // to type. Sending is the send button only.
 
   return (
     <div className="flex flex-col gap-4">
@@ -266,7 +263,6 @@ export function ChatClient({
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={onKeyDown}
           rows={2}
           placeholder={t('placeholder')}
           aria-label={t('placeholder')}

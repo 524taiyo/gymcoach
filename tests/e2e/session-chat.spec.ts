@@ -76,7 +76,9 @@ test('a lifter can ask the coach mid-session with the live workout attached', as
 
   // Ask a mid-workout question: the demo provider streams the in-session
   // canned answer, proving the currentSession context reached the LLM call.
+  // Enter types a newline (phone keyboards), so the send button is the only
+  // way to submit.
   await page.getByPlaceholder('Message your coach...').fill('My shoulder feels off, what now?');
-  await page.getByPlaceholder('Message your coach...').press('Enter');
+  await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByText('looking at your live session')).toBeVisible({ timeout: 15_000 });
 });
