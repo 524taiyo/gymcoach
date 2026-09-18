@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, MessageSquarePlus, Send } from 'lucide-react';
 import { WorkoutIcon } from '@/components/icons';
@@ -9,6 +9,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { extractAdjustments, stripStreamingAdjustments } from '@/lib/coach-adjustments';
+import { CoachAdjustments } from './coach-adjustments';
+import type { ProgramExerciseDefaults } from '@/lib/program-defaults';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -32,6 +35,9 @@ interface Props {
   // one of the two is ever set; the server drops it when a session is live.
   workoutId?: string | null;
   workoutName?: string | null;
+  // Current prescription per exercise name, to pre-fill the apply panel when
+  // the coach proposes program changes. Empty when there is no active program.
+  programDefaults: Record<string, ProgramExerciseDefaults>;
   hasApiKey: boolean;
   providerLabel: string;
   apiKeyEnvVar: string;
@@ -44,6 +50,7 @@ export function ChatClient({
   sessionId = null,
   workoutId = null,
   workoutName = null,
+  programDefaults,
   hasApiKey,
   providerLabel,
   apiKeyEnvVar,
@@ -54,6 +61,11 @@ export function ChatClient({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
+  // Indexes of assistant messages whose proposal has been applied in this
+  // view. A Message row has no "applied" column, so this is per-view state:
+  // after a reload the panel offers to apply again (harmless - same values,
+  // one more dated note line). The durable trail is ProgramExercise.notes.
+  const [appliedAt, setAppliedAt] = useState<Record<number, string>>({});
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -136,6 +148,7 @@ export function ChatClient({
       const j = (await res.json()) as {
         messages: { role: 'USER' | 'ASSISTANT'; content: string }[];
       };
+      setAppliedAt({});
       setMessages(
         j.messages.map((m) => ({
           role: m.role === 'ASSISTANT' ? 'assistant' : 'user',
@@ -151,6 +164,7 @@ export function ChatClient({
     if (streaming) return;
     setActiveId(null);
     setMessages([]);
+    setAppliedAt({});
   }
 
   // Enter inserts a newline and never sends: on a phone keyboard Enter IS the
@@ -233,29 +247,57 @@ export function ChatClient({
                 : t('empty')}
           </p>
         ) : (
-          messages.map((m, i) => (
-            <div
-              key={i}
-              className={cn(
-                'min-w-0 max-w-[90%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%]',
-                m.role === 'user'
-                  ? 'self-end bg-primary-strong text-primary-foreground'
-                  : 'self-start bg-muted',
-              )}
-            >
-              {m.role === 'assistant' ? (
-                m.content === '' && streaming ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <article className="prose prose-sm dark:prose-invert max-w-none break-words [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
-                  </article>
-                )
-              ) : (
-                <span className="whitespace-pre-wrap">{m.content}</span>
-              )}
-            </div>
-          ))
+          messages.map((m, i) => {
+            const isAssistant = m.role === 'assistant';
+            const stillStreaming = streaming && isAssistant && i === messages.length - 1;
+            // The <adjustments> block is machine-readable duplication of what
+            // the prose already says, and it arrives character by character:
+            // never show it, streaming or not.
+            const text = isAssistant ? stripStreamingAdjustments(m.content) : m.content;
+            // Program changes are offered once the reply is complete. Never
+            // mid-workout: an in-session answer is about the next set, not a
+            // permanent edit (the prompt says so too, this enforces it).
+            const proposal =
+              isAssistant && !stillStreaming && !sessionId
+                ? extractAdjustments(m.content).adjustments
+                : [];
+            return (
+              <Fragment key={i}>
+                <div
+                  className={cn(
+                    'min-w-0 max-w-[90%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%]',
+                    m.role === 'user'
+                      ? 'self-end bg-primary-strong text-primary-foreground'
+                      : 'self-start bg-muted',
+                  )}
+                >
+                  {isAssistant ? (
+                    text === '' && streaming ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <article className="prose prose-sm dark:prose-invert max-w-none break-words [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
+                        <ReactMarkdown>{text}</ReactMarkdown>
+                      </article>
+                    )
+                  ) : (
+                    <span className="whitespace-pre-wrap">{m.content}</span>
+                  )}
+                </div>
+                {proposal.length > 0 && activeId && (
+                  <div className="w-full">
+                    <CoachAdjustments
+                      applyUrl={`/api/coach/chat/${activeId}/apply`}
+                      initialAdjustments={proposal}
+                      programDefaults={programDefaults}
+                      alreadyApplied={appliedAt[i] != null}
+                      onApplied={(at) => setAppliedAt((prev) => ({ ...prev, [i]: at }))}
+                      title={t('applyToProgram')}
+                    />
+                  </div>
+                )}
+              </Fragment>
+            );
+          })
         )}
       </div>
 

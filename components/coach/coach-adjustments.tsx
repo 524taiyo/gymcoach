@@ -9,15 +9,20 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import type { Adjustment } from '@/lib/coach-adjustments';
-import type { ProgramExerciseDefaults } from './coach-client';
+import type { ProgramExerciseDefaults } from '@/lib/program-defaults';
 import { useExerciseName } from '@/components/shared/use-exercise-name';
 
 interface Props {
-  debriefId: string;
+  // Where to POST the confirmed adjustments. The weekly debrief and the chat
+  // have their own routes behind the same body and the same write.
+  applyUrl: string;
   initialAdjustments: Adjustment[];
   programDefaults: Record<string, ProgramExerciseDefaults>;
   alreadyApplied: boolean;
   onApplied: (appliedAt: string) => void;
+  // Overrides the card heading: in the chat the panel sits under one reply and
+  // reads as "apply this to my program", not as a list of weekly suggestions.
+  title?: string;
 }
 
 interface Row {
@@ -26,11 +31,12 @@ interface Row {
 }
 
 export function CoachAdjustments({
-  debriefId,
+  applyUrl,
   initialAdjustments,
   programDefaults,
   alreadyApplied,
   onApplied,
+  title,
 }: Props) {
   const t = useTranslations('coach.adjustments');
   const exerciseName = useExerciseName();
@@ -67,14 +73,14 @@ export function CoachAdjustments({
   async function applyAll() {
     const selected = rows.filter((r) => r.selected).map((r) => r.data);
     if (selected.length === 0) {
-      setError('Select at least one adjustment.');
+      setError(t('selectOne'));
       return;
     }
     setPending(true);
     setError(null);
     setFeedback(null);
     try {
-      const res = await fetch(`/api/coach/${debriefId}/apply`, {
+      const res = await fetch(applyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adjustments: selected }),
@@ -90,16 +96,15 @@ export function CoachAdjustments({
       };
       const skippedMsg =
         j.skipped.length > 0
-          ? ` (${j.skipped.length} skipped: ${j.skipped
-              .map((s) => exerciseName(s.exerciseName))
-              .join(', ')})`
+          ? t('skippedSuffix', {
+              count: j.skipped.length,
+              names: j.skipped.map((s) => exerciseName(s.exerciseName)).join(', '),
+            })
           : '';
-      setFeedback(
-        `${j.applied.length} adjustment${j.applied.length > 1 ? 's' : ''} applied${skippedMsg}.`,
-      );
+      setFeedback(`${t('appliedCount', { count: j.applied.length })}${skippedMsg}`);
       onApplied(j.appliedAt);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
+      setError(e instanceof Error ? e.message : t('unknownError'));
     } finally {
       setPending(false);
     }
@@ -113,7 +118,7 @@ export function CoachAdjustments({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="size-5" />
-            <h2 className="text-base font-semibold">{t('title')}</h2>
+            <h2 className="text-base font-semibold">{title ?? t('title')}</h2>
           </div>
           {alreadyApplied && <Badge variant="secondary">{t('applied')}</Badge>}
         </div>

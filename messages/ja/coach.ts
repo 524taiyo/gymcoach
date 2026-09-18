@@ -21,6 +21,7 @@ export const coach = {
   chat: {
     apiKey: 'チャットを有効にするには .env に {variable} を設定してください。',
     liveSession: 'ライブセッション接続中。',
+    applyToProgram: 'プログラムに反映',
     new: '新規',
     placeholder: 'コーチにメッセージ...',
     send: '送信',
@@ -87,6 +88,10 @@ export const coach = {
     rest: '休憩 (秒)',
     targetLoad: '目標重量',
     versus: ' (現在 {value})',
+    appliedCount: '{count} 件の調整を適用しました',
+    skippedSuffix: '（{count} 件スキップ: {names}）',
+    selectOne: '少なくとも1つ選択してください。',
+    unknownError: '不明なエラー',
     applying: '適用中...',
     apply: '{count, plural, one {# つの調整} other {# つの調整}} を適用',
   },

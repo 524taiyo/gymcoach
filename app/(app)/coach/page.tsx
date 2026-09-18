@@ -7,11 +7,9 @@ import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { getLlmProvider } from '@/lib/llm';
 import { buildCoachPayload } from '@/lib/coach';
+import { getProgramDefaults } from '@/lib/program-defaults';
 import { summarizeCoachPayload } from '@/lib/coach-context';
-import {
-  CoachClient,
-  type ProgramExerciseDefaults,
-} from '@/components/coach/coach-client';
+import { CoachClient } from '@/components/coach/coach-client';
 import { CoachContextCard } from '@/components/coach/coach-context-card';
 import { CoachNoteCard } from '@/components/coach/coach-note-card';
 
@@ -20,7 +18,7 @@ export default async function CoachPage() {
   const nav = await getTranslations('navigation');
   const auth = await requireSession();
 
-  const [history, activeProgram, coachPayload] = await Promise.all([
+  const [history, programDefaults, coachPayload] = await Promise.all([
     db.coachSession.findMany({
       where: { userId: auth.userId },
       orderBy: { createdAt: 'desc' },
@@ -34,43 +32,14 @@ export default async function CoachPage() {
         createdAt: true,
       },
     }),
-    db.program.findFirst({
-      where: { userId: auth.userId, isActive: true },
-      include: {
-        workouts: {
-          include: {
-            exercises: {
-              include: { exercise: { select: { name: true } } },
-            },
-          },
-        },
-      },
-    }),
+    // Current prescription per exercise, to pre-fill the adjustments panel.
+    getProgramDefaults(auth.userId),
     // "What your coach sees" (issue #154): the SAME builder the debrief and
     // chat routes use, so the card cannot drift from the payload the AI gets.
     buildCoachPayload(auth.userId),
   ]);
 
   const coachContext = summarizeCoachPayload(coachPayload);
-
-  // Map exerciseName -> current program values (to pre-fill adjustments when
-  // the coach does not provide an explicit value).
-  const programDefaults: Record<string, ProgramExerciseDefaults> = {};
-  if (activeProgram) {
-    for (const w of activeProgram.workouts) {
-      for (const pe of w.exercises) {
-        const key = pe.exercise.name;
-        if (programDefaults[key]) continue;
-        programDefaults[key] = {
-          targetRepsMin: pe.targetRepsMin,
-          targetRepsMax: pe.targetRepsMax,
-          targetSets: pe.targetSets,
-          targetRIR: pe.targetRIR,
-          restSec: pe.restSec,
-        };
-      }
-    }
-  }
 
   // Pre-serialize the dates for the client component.
   const initialHistory = history.map((h) => ({

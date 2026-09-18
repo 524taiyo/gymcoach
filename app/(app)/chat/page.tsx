@@ -5,6 +5,7 @@ import { getTrainingDisplayName } from '@/i18n/training-names';
 import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { getLlmProvider } from '@/lib/llm';
+import { getProgramDefaults } from '@/lib/program-defaults';
 import {
   ChatClient,
   type ChatMessage,
@@ -53,12 +54,16 @@ export default async function ChatPage(
     workoutName = owned ? getTrainingDisplayName(owned.name, locale) : null;
   }
 
-  const conversations = await db.conversation.findMany({
-    where: { userId: auth.userId },
-    orderBy: { updatedAt: 'desc' },
-    take: 50,
-    select: { id: true, title: true, updatedAt: true },
-  });
+  const [conversations, programDefaults] = await Promise.all([
+    db.conversation.findMany({
+      where: { userId: auth.userId },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+      select: { id: true, title: true, updatedAt: true },
+    }),
+    // Needed to pre-fill the apply panel when a reply proposes program changes.
+    getProgramDefaults(auth.userId),
+  ]);
 
   // With a workout attached - live or planned - start on a fresh conversation
   // so the question about it is not appended to an old thread.
@@ -96,6 +101,7 @@ export default async function ChatPage(
           sessionId={sessionId}
           workoutId={workoutId}
           workoutName={workoutName}
+          programDefaults={programDefaults}
           hasApiKey={provider.isConfigured()}
           providerLabel={provider.label}
           apiKeyEnvVar={provider.apiKeyEnvVar}

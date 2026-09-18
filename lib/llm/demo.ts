@@ -109,6 +109,47 @@ const CHAT_PLANNED_WORKOUT = `Got it - looking at the menu you are about to trai
 
 Start it and log the first set - ask me again if the load reads wrong.`;
 
+// A program question in the chat (issue: apply program changes from the chat).
+// Names and current values match the seeded demo program so the adjustments
+// actually resolve against it when applied.
+const PROGRAM_QUESTION_RE =
+  /program|プログラム|sets?|セット数|回数|重量|load|増や|減ら|調整|変え/i;
+
+const CHAT_PROGRAM_ADJUSTMENT = `Looking at your program, two things are worth changing now.
+
+- **Barbell bench press**: your top set has moved up two sessions in a row at RIR 2, so the 6-8 range is no longer the limiter. Widening it to 6-10 lets you keep adding reps before the next load jump.
+- **Bent-over barbell row**: three sets have been enough to stall it. A fourth set at the same load is the cheapest way to add stimulus without touching the rest of the session.
+
+Nothing else needs to move this week. Apply these below if you agree.
+
+<adjustments>
+[
+  {
+    "exerciseName": "Barbell bench press",
+    "summary": "Widen the rep range to 6-10",
+    "rationale": "Top set progressed two sessions running at RIR 2, so reps are available before the next load increase.",
+    "suggestedRepsMin": 6,
+    "suggestedRepsMax": 10,
+    "suggestedSets": 4,
+    "suggestedRIR": 2,
+    "suggestedRestSec": 150,
+    "currentLoad": 80,
+    "suggestedLoad": 82.5,
+    "note": "Add load once you hit 10 reps on all sets"
+  },
+  {
+    "exerciseName": "Bent-over barbell row",
+    "summary": "Add a fourth set",
+    "rationale": "Estimated 1RM has been flat over the last three sessions while RIR stayed at 2, so volume is the missing variable.",
+    "suggestedRepsMin": 8,
+    "suggestedRepsMax": 10,
+    "suggestedSets": 4,
+    "suggestedRIR": 2,
+    "suggestedRestSec": 120
+  }
+]
+</adjustments>`;
+
 const CHAT = `Short version: your bench is moving and your chest volume is in a good spot.
 
 - **Bench press**: estimated 1RM is trending up (about +6% over the last 8 weeks) while your RIR stays around 2, so the stimulus is sustainable. Keep adding ~2.5 kg once you hit the top of the rep range on all sets.
@@ -188,12 +229,18 @@ function cannedResponse(system: string, userText = ''): string {
       : DEMO_SET_PARSE_STRENGTH;
   }
   if (system.includes('exactly ONE encouraging sentence')) return dailyTipFor(system); // home one-liner
-  if (system.includes('<adjustments>')) return DEBRIEF; // weekly debrief prompt
+  // Weekly debrief. Keyed off a phrase unique to the debrief prompt, NOT off
+  // "<adjustments>": the chat prompt documents that same block now.
+  if (system.includes('For each debrief')) return DEBRIEF;
   if (system.includes('SINGLE JSON object')) return JSON.stringify(DEMO_PROGRAM, null, 2); // program generation prompt
   // In-session chat: the appended payload JSON carries a "currentSession" key
   // only when a live session is attached (the quoted form cannot appear in the
   // stable prompt text, which mentions currentSession without quotes).
   if (system.includes('"currentSession"')) return CHAT_IN_SESSION;
+  // A program question in the chat: reply with a real <adjustments> block so
+  // the "apply to my program" flow works with no API key. Deliberately after
+  // the currentSession branch - mid-workout replies never carry the block.
+  if (PROGRAM_QUESTION_RE.test(userText)) return CHAT_PROGRAM_ADJUSTMENT;
   // Pre-session chat: same trick with the "plannedWorkout" key, present only
   // when home attached a workout that has not started yet.
   if (system.includes('"plannedWorkout"')) return CHAT_PLANNED_WORKOUT;

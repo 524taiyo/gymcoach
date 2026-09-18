@@ -18,6 +18,7 @@ export const coach = {
   chat: {
     apiKey: 'Set {variable} in .env to enable the chat.',
     liveSession: 'Live session attached.',
+    applyToProgram: 'Apply to your program',
     new: 'New',
     placeholder: 'Message your coach...',
     send: 'Send',
@@ -84,6 +85,10 @@ export const coach = {
     rest: 'Rest (s)',
     targetLoad: 'Target load',
     versus: ' (vs {value})',
+    appliedCount: '{count, plural, one {# adjustment applied} other {# adjustments applied}}',
+    skippedSuffix: ' ({count} skipped: {names})',
+    selectOne: 'Select at least one adjustment.',
+    unknownError: 'Unknown error',
     applying: 'Applying...',
     apply: 'Apply {count, plural, one {# adjustment} other {# adjustments}}',
   },

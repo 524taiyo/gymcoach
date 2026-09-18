@@ -1,5 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { getLlmProvider, resolveProviderId } from './index';
+import { COACH_SYSTEM_PROMPT } from '@/lib/prompts/coach-system-prompt';
+import { CHAT_SYSTEM_PROMPT } from '@/lib/prompts/chat-system-prompt';
+import { extractAdjustments } from '@/lib/coach-adjustments';
 
 const saved = process.env.LLM_PROVIDER;
 afterEach(() => {
@@ -21,7 +24,7 @@ describe('demo provider', () => {
     const p = getLlmProvider();
 
     const debrief = await p.complete({
-      system: 'You produce a debrief and an <adjustments> block.',
+      system: COACH_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(debrief.text).toContain('<adjustments>');
@@ -41,10 +44,13 @@ describe('demo provider', () => {
     expect(program.text).toContain('"workouts"');
 
     const chat = await p.complete({
-      system: 'You are GymCoach, a conversational coach.',
+      system: CHAT_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(chat.text.toLowerCase()).toContain('volume');
+    // The chat prompt documents the same block, so routing must not confuse
+    // it with the debrief.
+    expect(chat.text).not.toMatch(/Performance recap/i);
   });
 
   // Issue #111: a live session in the appended payload selects the in-session
@@ -79,7 +85,7 @@ describe('demo provider', () => {
     const p = getLlmProvider();
 
     const debrief = await p.complete({
-      system: 'You produce a debrief and an <adjustments> block.',
+      system: COACH_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(debrief.text).toMatch(/\*\*Conditioning\*\*/);
@@ -97,7 +103,7 @@ describe('demo provider', () => {
     const p = getLlmProvider();
 
     const debrief = await p.complete({
-      system: 'You produce a debrief and an <adjustments> block.',
+      system: COACH_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(debrief.text).toMatch(/Interference check/i);
@@ -113,7 +119,7 @@ describe('demo provider', () => {
     const p = getLlmProvider();
 
     const debrief = await p.complete({
-      system: 'You produce a debrief and an <adjustments> block.',
+      system: COACH_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: 'x' }],
     });
     expect(debrief.text).toMatch(/Your note to me/i);
@@ -167,5 +173,48 @@ describe('demo provider', () => {
       ],
     });
     expect(out.text).toContain('unparseable');
+  });
+
+  // Applying program changes proposed in the chat: the demo provider answers a
+  // program question with a real <adjustments> block, so the flow works with
+  // no API key.
+  it('answers a program question in the chat with an applicable adjustments block', async () => {
+    process.env.LLM_PROVIDER = 'demo';
+    const p = getLlmProvider();
+
+    const out = await p.complete({
+      system: CHAT_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: 'Should I add a set to my rows?' }],
+    });
+
+    const { cleaned, adjustments, parseErrors } = extractAdjustments(out.text);
+    expect(parseErrors).toEqual([]);
+    expect(adjustments.length).toBeGreaterThan(0);
+    // The block parses into something the apply route can act on.
+    for (const adj of adjustments) {
+      expect(adj.exerciseName).not.toBe('');
+      expect(adj.rationale).toBeTruthy();
+      expect(adj.suggestedSets).toBeGreaterThan(0);
+      expect(adj.suggestedRepsMin).toBeGreaterThan(0);
+      expect(adj.suggestedRepsMax).toBeGreaterThanOrEqual(adj.suggestedRepsMin!);
+      expect(adj.suggestedRIR).not.toBeNull();
+      expect(adj.suggestedRestSec).toBeGreaterThan(0);
+    }
+    // The prose the user reads explains the change and carries no raw markup.
+    expect(cleaned).not.toContain('<adjustments>');
+    expect(cleaned.toLowerCase()).toContain('program');
+  });
+
+  it('never proposes program changes mid-workout, even when asked', async () => {
+    process.env.LLM_PROVIDER = 'demo';
+    const p = getLlmProvider();
+
+    const out = await p.complete({
+      system: `${CHAT_SYSTEM_PROMPT}
+{ "currentSession": { "workoutName": "Push" } }`,
+      messages: [{ role: 'user', content: 'Should I add a set to my program?' }],
+    });
+    expect(out.text).not.toContain('<adjustments>');
+    expect(out.text).toContain('live session');
   });
 });

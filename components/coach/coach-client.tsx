@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { extractAdjustments, type Adjustment } from '@/lib/coach-adjustments';
+import type { ProgramExerciseDefaults } from '@/lib/program-defaults';
 import { CoachAdjustments } from './coach-adjustments';
 
 interface DebriefItem {
@@ -19,13 +20,8 @@ interface DebriefItem {
   createdAt: string;
 }
 
-export interface ProgramExerciseDefaults {
-  targetRepsMin: number;
-  targetRepsMax: number;
-  targetSets: number;
-  targetRIR: number;
-  restSec: number;
-}
+// Re-exported for the components that used to take this type from here.
+export type { ProgramExerciseDefaults };
 
 interface Props {
   initialHistory: DebriefItem[];
@@ -235,7 +231,7 @@ function ActiveDebrief({
 
       {adjustments.length > 0 && (
         <CoachAdjustments
-          debriefId={active.id}
+          applyUrl={`/api/coach/${active.id}/apply`}
           initialAdjustments={adjustments as Adjustment[]}
           programDefaults={programDefaults}
           alreadyApplied={!!active.appliedAt}

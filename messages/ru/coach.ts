@@ -21,6 +21,7 @@ export const coach = {
   chat: {
     apiKey: 'Укажите {variable} в файле .env, чтобы включить чат.',
     liveSession: 'Текущая тренировка прикреплена.',
+    applyToProgram: 'Применить к программе',
     new: 'Новый',
     placeholder: 'Напишите тренеру...',
     send: 'Отправить',
@@ -89,6 +90,10 @@ export const coach = {
     rest: 'Отдых (с)',
     targetLoad: 'Целевой вес',
     versus: ' (было {value})',
+    appliedCount: '{count, plural, one {Применена # корректировка} few {Применены # корректировки} other {Применено # корректировок}}',
+    skippedSuffix: ' (пропущено: {count} - {names})',
+    selectOne: 'Выберите хотя бы одну корректировку.',
+    unknownError: 'Неизвестная ошибка',
     applying: 'Применение...',
     apply:
       'Применить {count, plural, one {# изменение} few {# изменения} many {# изменений} other {# изменения}}',
