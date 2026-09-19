@@ -34,6 +34,18 @@ export const coach = {
     empty:
       'Ask about breaking a plateau, training volume, progression, recovery or injury adjustments.',
   },
+  programProposal: {
+    title: 'Create this program',
+    description:
+      'The plan your coach proposed. Creating it adds any missing exercises to your catalog and makes it your active program.',
+    summary: '{workouts} sessions / {exercises} exercises',
+    willReplace: 'Your current active program stays, deactivated, with its history.',
+    create: 'Create and activate',
+    creating: 'Creating...',
+    created: 'Created',
+    open: 'Open the program',
+    error: 'The program could not be created.',
+  },
   context: {
     title: 'What your coach sees',
     teaser: 'The training context behind every debrief. Tap to expand.',

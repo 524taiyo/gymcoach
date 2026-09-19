@@ -78,6 +78,12 @@ export interface CoachPayload {
   // chat is opened from the session runner with a session the user owns.
   // Additive and input-side only; the output contract is unchanged.
   currentSession?: CurrentSessionContext;
+  // Every exercise name in the user's catalog. The coach needs it to write a
+  // NEW program (chat <program> block): without it the model invents names
+  // like "Bench Press" next to the existing "Barbell bench press" and the
+  // catalog grows a duplicate for every plan. Names only - the rest of the
+  // exercise record is not needed to pick one.
+  exerciseCatalog: string[];
   // The workout the user is ABOUT to do, attached when the chat is opened from
   // the "ask about this menu" button on home with a workout the user owns.
   // Same additive, input-side-only contract as currentSession; the two are
@@ -352,6 +358,7 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
     goals,
     fatigue,
     records,
+    catalog,
     recentSets,
   ] = await Promise.all([
     weekSummary(userId, currentWeekStart, addDays(currentWeekStart, 7), bodyweight),
@@ -361,6 +368,11 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
     fetchGoalsSummary(userId, bodyweight),
     fetchFatigueSummary(userId, bodyweight, now),
     fetchRecordsSummary(userId, bodyweight),
+    db.exercise.findMany({
+      where: { userId },
+      orderBy: { name: 'asc' },
+      select: { name: true },
+    }),
     db.set.findMany({
       where: {
         isWarmup: false,
@@ -516,6 +528,7 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
     },
     conditioning,
     records,
+    exerciseCatalog: catalog.map((e) => e.name),
     recentProgress: recentProgress.sort((a, b) =>
       a.exerciseName.localeCompare(b.exerciseName),
     ),

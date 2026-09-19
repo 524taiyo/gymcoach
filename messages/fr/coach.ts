@@ -37,6 +37,18 @@ export const coach = {
     empty:
       'Posez vos questions : sortir d’un plateau, volume d’entraînement, progression, récupération ou adaptation à une blessure.',
   },
+  programProposal: {
+    title: 'Créer ce programme',
+    description:
+      'Le plan proposé par votre coach. Le créer ajoute les exercices manquants à votre catalogue et en fait votre programme actif.',
+    summary: '{workouts} séances / {exercises} exercices',
+    willReplace: 'Votre programme actif actuel est conservé, désactivé, avec son historique.',
+    create: 'Créer et activer',
+    creating: 'Création...',
+    created: 'Créé',
+    open: 'Ouvrir le programme',
+    error: 'Le programme n’a pas pu être créé.',
+  },
   context: {
     title: 'Ce que voit votre coach',
     teaser: 'Le contexte d’entraînement derrière chaque débrief. Touchez pour développer.',

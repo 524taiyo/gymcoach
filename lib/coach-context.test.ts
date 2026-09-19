@@ -36,6 +36,7 @@ function emptyPayload(): CoachPayload {
       weeklyTargetMin: 150,
     },
     records: [],
+    exerciseCatalog: [],
     recentProgress: [],
   };
 }

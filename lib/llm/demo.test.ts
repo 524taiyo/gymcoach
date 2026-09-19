@@ -3,6 +3,7 @@ import { getLlmProvider, resolveProviderId } from './index';
 import { COACH_SYSTEM_PROMPT } from '@/lib/prompts/coach-system-prompt';
 import { CHAT_SYSTEM_PROMPT } from '@/lib/prompts/chat-system-prompt';
 import { extractAdjustments } from '@/lib/coach-adjustments';
+import { extractProgramProposal } from '@/lib/coach-program';
 
 const saved = process.env.LLM_PROVIDER;
 afterEach(() => {
@@ -216,5 +217,52 @@ describe('demo provider', () => {
     });
     expect(out.text).not.toContain('<adjustments>');
     expect(out.text).toContain('live session');
+  });
+
+  // Building a whole program from the chat: the demo provider answers a
+  // "build me a program" request with a schema-valid <program> block.
+  it('answers a program-building request with a valid program block', async () => {
+    process.env.LLM_PROVIDER = 'demo';
+    const p = getLlmProvider();
+
+    const out = await p.complete({
+      system: CHAT_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: '週4回の分割プログラムを作って' }],
+    });
+
+    const { cleaned, program, parseError } = extractProgramProposal(out.text);
+    expect(parseError).toBeNull();
+    expect(program).not.toBeNull();
+    expect(program!.workouts.length).toBeGreaterThan(1);
+    // Each workout is pinned to a weekday, so home can resolve today's session.
+    for (const w of program!.workouts) {
+      expect(w.dayOfWeek).toBeGreaterThanOrEqual(1);
+      expect(w.dayOfWeek).toBeLessThanOrEqual(7);
+      expect(w.exercises.length).toBeGreaterThan(0);
+    }
+    // A creation request must not also carry a retune of the current program.
+    expect(out.text).not.toContain('<adjustments>');
+    expect(cleaned).not.toContain('<program>');
+  });
+
+  it('keeps retuning and building apart', async () => {
+    process.env.LLM_PROVIDER = 'demo';
+    const p = getLlmProvider();
+
+    // Retune: adjustments, no program.
+    const retune = await p.complete({
+      system: CHAT_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: 'プログラムのセット数を見直したい' }],
+    });
+    expect(retune.text).toContain('<adjustments>');
+    expect(retune.text).not.toContain('<program>');
+
+    // Build: program, no adjustments.
+    const build = await p.complete({
+      system: CHAT_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: 'build me a new program' }],
+    });
+    expect(build.text).toContain('<program>');
+    expect(build.text).not.toContain('<adjustments>');
   });
 });

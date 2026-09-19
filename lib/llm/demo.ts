@@ -109,6 +109,235 @@ const CHAT_PLANNED_WORKOUT = `Got it - looking at the menu you are about to trai
 
 Start it and log the first set - ask me again if the load reads wrong.`;
 
+// A request to BUILD a program in the chat. The block is a schema-valid
+// GeneratedProgram, so the no-key flow exercises the create-and-activate
+// path end to end. Exercise names are taken from the seeded catalog.
+const CREATE_PROGRAM_RE =
+  /プログラムを(作|組)|新しいプログラム|メニューを組|週\s*\d\s*(回|日)|分割|create (a |an )?program|build (me )?(a |an )?program|new program|training plan|split/i;
+
+const CHAT_NEW_PROGRAM = `Here is a four-day upper/lower split that fits what your history shows.
+
+- **Monday / Thursday**: upper, pressing first on Monday and pulling volume on Thursday.
+- **Tuesday / Friday**: lower, squat-led early in the week and deadlift-led later, so the heavy hinge lands on fresh legs.
+- Main lifts stay at RIR 2; accessories run one rep shy of that. Warm-ups and post-session cardio are in the session notes.
+
+Review it below and create it when you are happy.
+
+<program>
+{
+  "name": "Upper / Lower 4x",
+  "phase": "Hypertrophy",
+  "description": "Upper/lower split trained four times a week (Mon/Tue/Thu/Fri), 60 minutes a session, main lifts at RIR 2.",
+  "workouts": [
+    {
+      "name": "Upper A",
+      "dayOfWeek": 1,
+      "exercises": [
+        {
+          "name": "Barbell bench press",
+          "muscleGroup": "CHEST",
+          "category": "COMPOUND",
+          "equipmentType": "BARBELL",
+          "targetSets": 4,
+          "targetRepsMin": 6,
+          "targetRepsMax": 8,
+          "targetRIR": 2,
+          "restSec": 180,
+          "notes": "Warm-up: 5 min bike, arm circles 10x2, empty bar 10"
+        },
+        {
+          "name": "Bent-over barbell row",
+          "muscleGroup": "BACK_THICKNESS",
+          "category": "COMPOUND",
+          "equipmentType": "BARBELL",
+          "targetSets": 4,
+          "targetRepsMin": 6,
+          "targetRepsMax": 8,
+          "targetRIR": 2,
+          "restSec": 150
+        },
+        {
+          "name": "Seated dumbbell overhead press",
+          "muscleGroup": "SHOULDERS_FRONT",
+          "category": "COMPOUND",
+          "equipmentType": "DUMBBELL",
+          "targetSets": 3,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 120
+        },
+        {
+          "name": "Triceps pushdown (rope)",
+          "muscleGroup": "TRICEPS",
+          "category": "ISOLATION",
+          "equipmentType": "CABLE",
+          "targetSets": 2,
+          "targetRepsMin": 10,
+          "targetRepsMax": 12,
+          "targetRIR": 2,
+          "restSec": 75
+        }
+      ]
+    },
+    {
+      "name": "Lower A",
+      "dayOfWeek": 2,
+      "exercises": [
+        {
+          "name": "Back Squat",
+          "muscleGroup": "QUADS",
+          "category": "COMPOUND",
+          "equipmentType": "BARBELL",
+          "targetSets": 4,
+          "targetRepsMin": 6,
+          "targetRepsMax": 8,
+          "targetRIR": 2,
+          "restSec": 180,
+          "notes": "Warm-up: 5 min bike, deep bodyweight squats 8x3"
+        },
+        {
+          "name": "Romanian Deadlift",
+          "muscleGroup": "HAMSTRINGS",
+          "category": "COMPOUND",
+          "equipmentType": "BARBELL",
+          "targetSets": 3,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 120
+        },
+        {
+          "name": "Leg extension",
+          "muscleGroup": "QUADS",
+          "category": "ISOLATION",
+          "equipmentType": "MACHINE",
+          "targetSets": 3,
+          "targetRepsMin": 12,
+          "targetRepsMax": 15,
+          "targetRIR": 2,
+          "restSec": 60
+        },
+        {
+          "name": "Cycling",
+          "muscleGroup": "OTHER",
+          "category": "CARDIO",
+          "equipmentType": "CARDIO",
+          "targetSets": 1,
+          "targetRepsMin": 1,
+          "targetRepsMax": 1,
+          "targetRIR": 3,
+          "restSec": 60,
+          "notes": "Post-session: 12 min easy"
+        }
+      ]
+    },
+    {
+      "name": "Upper B",
+      "dayOfWeek": 4,
+      "exercises": [
+        {
+          "name": "Incline dumbbell press (30 deg)",
+          "muscleGroup": "CHEST",
+          "category": "COMPOUND",
+          "equipmentType": "DUMBBELL",
+          "targetSets": 4,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 120,
+          "notes": "Warm-up: 5 min bike, band pull-aparts 15x2"
+        },
+        {
+          "name": "Lat pulldown (wide grip)",
+          "muscleGroup": "BACK_WIDTH",
+          "category": "COMPOUND",
+          "equipmentType": "CABLE",
+          "targetSets": 4,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 120
+        },
+        {
+          "name": "Cable lateral raises",
+          "muscleGroup": "SHOULDERS_LATERAL",
+          "category": "ISOLATION",
+          "equipmentType": "CABLE",
+          "targetSets": 3,
+          "targetRepsMin": 12,
+          "targetRepsMax": 15,
+          "targetRIR": 1,
+          "restSec": 60
+        },
+        {
+          "name": "EZ-bar curl",
+          "muscleGroup": "BICEPS",
+          "category": "ISOLATION",
+          "equipmentType": "BARBELL",
+          "targetSets": 2,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 90
+        }
+      ]
+    },
+    {
+      "name": "Lower B",
+      "dayOfWeek": 5,
+      "exercises": [
+        {
+          "name": "Deadlift",
+          "muscleGroup": "HAMSTRINGS",
+          "category": "COMPOUND",
+          "equipmentType": "BARBELL",
+          "targetSets": 4,
+          "targetRepsMin": 5,
+          "targetRepsMax": 6,
+          "targetRIR": 2,
+          "restSec": 180,
+          "notes": "Warm-up: 5 min bike, hip circles 8x2"
+        },
+        {
+          "name": "Leg press (45 deg)",
+          "muscleGroup": "QUADS",
+          "category": "COMPOUND",
+          "equipmentType": "MACHINE",
+          "targetSets": 3,
+          "targetRepsMin": 8,
+          "targetRepsMax": 10,
+          "targetRIR": 2,
+          "restSec": 150
+        },
+        {
+          "name": "Lying leg curl",
+          "muscleGroup": "HAMSTRINGS",
+          "category": "ISOLATION",
+          "equipmentType": "MACHINE",
+          "targetSets": 3,
+          "targetRepsMin": 10,
+          "targetRepsMax": 12,
+          "targetRIR": 2,
+          "restSec": 90
+        },
+        {
+          "name": "Standing calf raise (or machine)",
+          "muscleGroup": "CALVES",
+          "category": "ISOLATION",
+          "equipmentType": "MACHINE",
+          "targetSets": 3,
+          "targetRepsMin": 12,
+          "targetRepsMax": 15,
+          "targetRIR": 1,
+          "restSec": 60
+        }
+      ]
+    }
+  ]
+}
+</program>`;
+
 // A program question in the chat (issue: apply program changes from the chat).
 // Names and current values match the seeded demo program so the adjustments
 // actually resolve against it when applied.
@@ -240,6 +469,9 @@ function cannedResponse(system: string, userText = ''): string {
   // A program question in the chat: reply with a real <adjustments> block so
   // the "apply to my program" flow works with no API key. Deliberately after
   // the currentSession branch - mid-workout replies never carry the block.
+  // Build a NEW program (checked first: "make me a 6-day split" is a creation
+  // request, not a retune of the current program).
+  if (CREATE_PROGRAM_RE.test(userText)) return CHAT_NEW_PROGRAM;
   if (PROGRAM_QUESTION_RE.test(userText)) return CHAT_PROGRAM_ADJUSTMENT;
   // Pre-session chat: same trick with the "plannedWorkout" key, present only
   // when home attached a workout that has not started yet.

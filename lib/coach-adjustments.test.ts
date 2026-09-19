@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractAdjustments, stripStreamingAdjustments } from './coach-adjustments';
+import { extractAdjustments } from './coach-adjustments';
 
 describe('extractAdjustments', () => {
   it('returns the original markdown when no tag is present', () => {
@@ -84,41 +84,5 @@ Great progression on the squat.
     const r = extractAdjustments(md);
     expect(r.adjustments).toEqual([]);
     expect(r.parseErrors).toHaveLength(1);
-  });
-});
-
-describe('stripStreamingAdjustments', () => {
-  const body = 'Bench is moving, add 2.5 kg.';
-
-  it('hides the block while it is still being typed out', () => {
-    // The tag arrives one token at a time; none of these fragments should
-    // reach the screen.
-    for (const fragment of ['<', '<a', '<adj', '<adjustments', '<adjustments>']) {
-      expect(stripStreamingAdjustments(`${body}\n\n${fragment}`)).toBe(body);
-    }
-  });
-
-  it('hides a block whose JSON is still streaming', () => {
-    expect(
-      stripStreamingAdjustments(`${body}\n\n<adjustments>\n[\n  { "exerciseNam`),
-    ).toBe(body);
-  });
-
-  it('hides a complete block', () => {
-    expect(
-      stripStreamingAdjustments(
-        `${body}\n\n<adjustments>[{"exerciseName":"Bench","summary":"+2.5 kg"}]</adjustments>`,
-      ),
-    ).toBe(body);
-  });
-
-  it('leaves a lone angle bracket in the prose alone', () => {
-    expect(stripStreamingAdjustments('Keep RIR < 3')).toBe('Keep RIR < 3');
-    expect(stripStreamingAdjustments('Use <b>bold</b>')).toBe('Use <b>bold</b>');
-  });
-
-  it('agrees with extractAdjustments once the block is complete', () => {
-    const full = `${body}\n\n<adjustments>[{"exerciseName":"Bench","summary":"+2.5 kg"}]</adjustments>`;
-    expect(stripStreamingAdjustments(full)).toBe(extractAdjustments(full).cleaned);
   });
 });

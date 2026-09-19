@@ -9,8 +9,11 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { extractAdjustments, stripStreamingAdjustments } from '@/lib/coach-adjustments';
+import { extractAdjustments } from '@/lib/coach-adjustments';
+import { stripStreamingBlocks } from '@/lib/coach-blocks';
+import { extractProgramProposal } from '@/lib/coach-program';
 import { CoachAdjustments } from './coach-adjustments';
+import { ChatProgramProposal } from './chat-program-proposal';
 import type { ProgramExerciseDefaults } from '@/lib/program-defaults';
 
 export interface ChatMessage {
@@ -66,6 +69,9 @@ export function ChatClient({
   // after a reload the panel offers to apply again (harmless - same values,
   // one more dated note line). The durable trail is ProgramExercise.notes.
   const [appliedAt, setAppliedAt] = useState<Record<number, string>>({});
+  // Message index -> id of the program created from its proposal, so the
+  // panel switches to "open it" instead of offering to create a second copy.
+  const [createdPrograms, setCreatedPrograms] = useState<Record<number, string>>({});
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -149,6 +155,7 @@ export function ChatClient({
         messages: { role: 'USER' | 'ASSISTANT'; content: string }[];
       };
       setAppliedAt({});
+      setCreatedPrograms({});
       setMessages(
         j.messages.map((m) => ({
           role: m.role === 'ASSISTANT' ? 'assistant' : 'user',
@@ -165,6 +172,7 @@ export function ChatClient({
     setActiveId(null);
     setMessages([]);
     setAppliedAt({});
+    setCreatedPrograms({});
   }
 
   // Enter inserts a newline and never sends: on a phone keyboard Enter IS the
@@ -253,14 +261,14 @@ export function ChatClient({
             // The <adjustments> block is machine-readable duplication of what
             // the prose already says, and it arrives character by character:
             // never show it, streaming or not.
-            const text = isAssistant ? stripStreamingAdjustments(m.content) : m.content;
+            const text = isAssistant ? stripStreamingBlocks(m.content) : m.content;
             // Program changes are offered once the reply is complete. Never
             // mid-workout: an in-session answer is about the next set, not a
             // permanent edit (the prompt says so too, this enforces it).
-            const proposal =
-              isAssistant && !stillStreaming && !sessionId
-                ? extractAdjustments(m.content).adjustments
-                : [];
+            const canApply = isAssistant && !stillStreaming && !sessionId;
+            const proposal = canApply ? extractAdjustments(m.content).adjustments : [];
+            // A whole new program, for what <adjustments> cannot express.
+            const programProposal = canApply ? extractProgramProposal(m.content).program : null;
             return (
               <Fragment key={i}>
                 <div
@@ -283,6 +291,15 @@ export function ChatClient({
                     <span className="whitespace-pre-wrap">{m.content}</span>
                   )}
                 </div>
+                {programProposal && (
+                  <div className="w-full">
+                    <ChatProgramProposal
+                      program={programProposal}
+                      createdId={createdPrograms[i] ?? null}
+                      onCreated={(id) => setCreatedPrograms((prev) => ({ ...prev, [i]: id }))}
+                    />
+                  </div>
+                )}
                 {proposal.length > 0 && activeId && (
                   <div className="w-full">
                     <CoachAdjustments

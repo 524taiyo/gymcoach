@@ -107,7 +107,9 @@ export async function POST(req: Request) {
           for await (const chunk of provider.stream({
             system,
             messages: llmMessages,
-            maxTokens: 4096,
+            // A <program> block for a 6-day plan runs to several thousand
+            // tokens; at 4096 the JSON was truncated and unparseable.
+            maxTokens: 8000,
             temperature: 0.5,
           })) {
             assistant += chunk;

@@ -23,6 +23,8 @@ export const adjustmentSchema = z.object({
 
 export type Adjustment = z.infer<typeof adjustmentSchema>;
 
+export const ADJUSTMENTS_TAG = 'adjustments';
+
 const ADJUSTMENTS_TAG_RE = /<adjustments>([\s\S]*?)<\/adjustments>/i;
 
 export interface ExtractedAdjustments {
@@ -86,30 +88,3 @@ export const applyAdjustmentsSchema = z.object({
 });
 
 export type ApplyAdjustmentsInput = z.infer<typeof applyAdjustmentsSchema>;
-
-// ============================================================
-// Streaming display
-// ============================================================
-
-const ADJUSTMENTS_OPEN_TAG = '<adjustments>';
-
-// Same job as extractAdjustments' `cleaned`, but safe to call on a response
-// that is still arriving. The chat streams the reply token by token, so the
-// block is typed out on screen character by character before it is complete -
-// "<adj", "<adjustments>", "<adjustments>[{" - and the user would watch raw
-// JSON appear under the coach's answer. Strips any complete block plus a
-// trailing fragment that is still a prefix of the opening tag.
-//
-// Text that merely contains a "<" (e.g. "keep RIR < 3") is left alone: the
-// tail has to be a prefix of the tag, not just start with an angle bracket.
-export function stripStreamingAdjustments(text: string): string {
-  const withoutComplete = text.replace(ADJUSTMENTS_TAG_RE, '');
-  const lastOpen = withoutComplete.lastIndexOf('<');
-  if (lastOpen !== -1) {
-    const tail = withoutComplete.slice(lastOpen).toLowerCase();
-    if (ADJUSTMENTS_OPEN_TAG.startsWith(tail) || tail.startsWith(ADJUSTMENTS_OPEN_TAG)) {
-      return withoutComplete.slice(0, lastOpen).trimEnd();
-    }
-  }
-  return withoutComplete.trimEnd();
-}

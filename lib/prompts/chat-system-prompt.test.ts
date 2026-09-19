@@ -52,4 +52,30 @@ describe('chat system prompt', () => {
     expect(CHAT_SYSTEM_PROMPT).toMatch(/never applied on its own/i);
     expect(CHAT_SYSTEM_PROMPT).toMatch(/hypothetical/i);
   });
+
+  it('defines the program block for what adjustments cannot express', () => {
+    expect(CHAT_SYSTEM_PROMPT).toContain('<program>');
+    expect(CHAT_SYSTEM_PROMPT).toContain('</program>');
+    // The fields POST /api/programs/build validates must all be named.
+    for (const field of [
+      'workouts',
+      'dayOfWeek',
+      'muscleGroup',
+      'category',
+      'equipmentType',
+      'targetSets',
+      'restSec',
+      'phase',
+    ]) {
+      expect(CHAT_SYSTEM_PROMPT).toContain(field);
+    }
+    // Reuse the catalog rather than growing duplicates of the same lift.
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/exerciseCatalog/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/Copy the name EXACTLY/i);
+    // The two blocks stay apart, and neither fires mid-workout.
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/Never emit <program> and <adjustments> in the same reply/i);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/Do NOT include the block when a currentSession/i);
+    // Creating it is the trainee's tap.
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/Do not claim you have created anything/i);
+  });
 });

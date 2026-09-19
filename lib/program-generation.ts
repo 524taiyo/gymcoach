@@ -56,69 +56,96 @@ export async function generateProgram(userId: string, goal: string): Promise<Gen
 // Persists a (possibly user-edited) generated program in a single transaction.
 // New exercises are created on the fly; existing ones are reused by name.
 // Returns the new program id. The program is created inactive.
+//
+// Written as five batched statements rather than one per row: the row-by-row
+// version issued a query per workout and three per exercise, and against a
+// database a continent away (~100 ms each) a six-day plan blew through
+// Prisma's 5 s interactive-transaction timeout (P2028) and rolled back.
 export async function buildProgramFromGenerated(
   userId: string,
   program: GeneratedProgram,
 ): Promise<string> {
-  return db.$transaction(async (tx) => {
-    const created = await tx.program.create({
-      data: {
-        userId,
-        name: program.name,
-        description: program.description ?? null,
-        phase: program.phase,
-        isActive: false,
-      },
-    });
-
-    let workoutOrder = 1;
-    for (const w of program.workouts) {
-      const workout = await tx.workout.create({
+  return db.$transaction(
+    async (tx) => {
+      const created = await tx.program.create({
         data: {
-          programId: created.id,
-          name: w.name,
-          dayOfWeek: w.dayOfWeek ?? null,
-          order: workoutOrder++,
+          userId,
+          name: program.name,
+          description: program.description ?? null,
+          phase: program.phase,
+          isActive: false,
         },
       });
 
-      let exerciseOrder = 1;
-      for (const ex of w.exercises) {
-        const exercise = await tx.exercise.upsert({
-          where: { userId_name: { userId, name: ex.name } },
-          update: {},
-          create: {
+      const workouts = await tx.workout.createManyAndReturn({
+        data: program.workouts.map((w, i) => ({
+          programId: created.id,
+          name: w.name,
+          dayOfWeek: w.dayOfWeek ?? null,
+          order: i + 1,
+        })),
+        select: { id: true, order: true },
+      });
+      // Match on `order` rather than trusting the returned row order: it is
+      // unique within the program and is what we just assigned.
+      const workoutIdByOrder = new Map(workouts.map((w) => [w.order, w.id]));
+
+      // One lookup for every exercise the plan names, then one insert for the
+      // ones the catalog does not have yet.
+      const wanted = new Map<string, GeneratedProgram['workouts'][number]['exercises'][number]>();
+      for (const w of program.workouts) {
+        for (const ex of w.exercises) if (!wanted.has(ex.name)) wanted.set(ex.name, ex);
+      }
+      const existing = await tx.exercise.findMany({
+        where: { userId, name: { in: [...wanted.keys()] } },
+        select: { id: true, name: true, muscleGroup: true, category: true, usesBodyweight: true },
+      });
+      const byName = new Map(existing.map((e) => [e.name, e]));
+
+      const missing = [...wanted.values()].filter((ex) => !byName.has(ex.name));
+      if (missing.length > 0) {
+        const inserted = await tx.exercise.createManyAndReturn({
+          data: missing.map((ex) => ({
             userId,
             name: ex.name,
             muscleGroup: ex.muscleGroup,
             category: ex.category,
             equipmentType: ex.equipmentType ?? 'OTHER',
             defaultRestSec: ex.restSec,
-          },
+          })),
+          select: { id: true, name: true, muscleGroup: true, category: true, usesBodyweight: true },
         });
+        for (const e of inserted) byName.set(e.name, e);
+      }
 
-        const autoregDefaults = defaultIntraSetConfig(exercise);
-        await tx.programExercise.create({
-          data: {
-            workoutId: workout.id,
+      const rows = program.workouts.flatMap((w, wi) =>
+        w.exercises.map((ex, ei) => {
+          const exercise = byName.get(ex.name);
+          if (!exercise) throw new Error(`Exercise not resolved: ${ex.name}`);
+          const autoregDefaults = defaultIntraSetConfig(exercise);
+          return {
+            workoutId: workoutIdByOrder.get(wi + 1)!,
             exerciseId: exercise.id,
-            order: exerciseOrder++,
+            order: ei + 1,
             targetSets: ex.targetSets,
             targetRepsMin: ex.targetRepsMin,
             targetRepsMax: Math.max(ex.targetRepsMax, ex.targetRepsMin),
             targetRIR: ex.targetRIR,
             restSec: ex.restSec,
-            autoregulationMode: ex.autoregulationMode ?? 'PRESERVE_RIR',
+            autoregulationMode: ex.autoregulationMode ?? ('PRESERVE_RIR' as const),
             fatigueRate: ex.fatigueRate ?? autoregDefaults.fatigueRate,
             loadAdjustmentPct: ex.loadAdjustmentPct ?? autoregDefaults.loadAdjustmentPct,
             tempo: ex.tempo ?? null,
             notes: ex.notes ?? null,
             supersetGroup: ex.supersetGroup ?? null,
-          },
-        });
-      }
-    }
+          };
+        }),
+      );
+      await tx.programExercise.createMany({ data: rows });
 
-    return created.id;
-  });
+      return created.id;
+    },
+    // Headroom for a slow link; the batched version needs a fraction of it.
+    { timeout: 20_000, maxWait: 10_000 },
+  );
 }
