@@ -53,6 +53,7 @@ model User {
   progressPhotos    ProgressPhoto[]
   gyms              Gym[]              @relation("GymOwner")
   mcpAccessTokens   McpAccessToken[]
+  programChanges    ProgramChangeLog[]
   activeGymId       String?
   activeGym         Gym?               @relation("ActiveGym", fields: [activeGymId], references: [id], onDelete: SetNull)
 }
@@ -214,6 +215,7 @@ model Program {
   updatedAt        DateTime  @updatedAt
   workouts         Workout[]
   sessions         Session[]
+  changes          ProgramChangeLog[]
 }
 
 model Workout {
@@ -508,6 +510,32 @@ model ProgressPhoto {
   createdAt   DateTime @default(now())
 
   @@index([userId, takenAt])
+}
+
+// Audit trail of coach-proposed program changes the user approved (update,
+// add, remove, move). One row per change; rows applied together share a
+// batchId so the whole batch can be undone. `before`/`after` are JSON
+// snapshots of the ProgramExercise fields involved (lib/program-changes.ts).
+// Additive: nothing else reads it.
+model ProgramChangeLog {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId      String
+  program        Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  batchId        String
+  // 'debrief' or 'chat'.
+  source         String
+  action         String
+  exerciseName   String
+  workoutName    String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime  @default(now())
+  undoneAt       DateTime?
+
+  @@index([userId, batchId])
+  @@index([programId, createdAt])
 }
 
 model CoachSession {

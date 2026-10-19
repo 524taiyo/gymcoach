@@ -45,7 +45,11 @@ describe('chat system prompt', () => {
     // prompt must not invite proposals it will silently skip.
     expect(CHAT_SYSTEM_PROMPT).toMatch(/ALREADY in the active program/i);
     expect(CHAT_SYSTEM_PROMPT).toMatch(/exerciseName EXACTLY/i);
-    expect(CHAT_SYSTEM_PROMPT).toMatch(/[Nn]ever propose adding, removing or swapping/);
+    // Structural changes are bounded: one workout, at most 3, no restructure.
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/"action": "add" \(with "workoutName" exactly/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/At most 3 structural changes per reply/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/never restructure the whole program here/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/they can undo it afterwards/);
     // Mid-workout advice is about the next set, not a permanent edit.
     expect(CHAT_SYSTEM_PROMPT).toMatch(/Do NOT include the block when a currentSession/i);
     // The trainee confirms; the coach must not claim it already happened.

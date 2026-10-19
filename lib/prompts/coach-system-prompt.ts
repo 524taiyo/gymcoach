@@ -147,15 +147,26 @@ NOTHING after this block. Strict format:
 ]
 </adjustments>
 
+Structural changes use extra fields on the same object: "action" ("update" by
+default, or "add", "remove", "move"), "workoutName" (the workout's name exactly
+as in the payload), "position" (1-based place in that workout), and for "add"
+of an exercise that is not in exerciseCatalog, "muscleGroup" and "category".
+
 Only propose an adjustment if you have a justification in the data, and always
 fill the "rationale" with that justification (the "why"). Every adjustment must
-stay within the existing program: it may only retune load, sets, reps, RIR, rest
-or notes for an exercise that is ALREADY in the active program (match
-exerciseName exactly). Never propose adding, removing or swapping an exercise
-here, and never restructure the program. These are suggestions the user reviews,
-edits and explicitly accepts before anything is applied - they are never applied
-automatically. At most 8 adjustments. If there is nothing to adjust, do not
-include the block.
+stay within the existing program. By default (no "action", or "update") it
+retunes load, sets, reps, RIR, rest or notes for an exercise that is ALREADY in
+the active program (match exerciseName exactly). It may also change the
+structure of one workout when the data clearly calls for it: "add" puts an
+exercise into the named workout (workoutName required, full prescription
+required, optional position), "remove" takes out an exercise that is already
+there (give workoutName when it appears in several workouts), "move" changes its
+place (workoutName and position required). A swap is a remove plus an add. At
+most 3 structural changes per reply, and never restructure the whole program
+here. These are suggestions the user reviews, edits and explicitly accepts
+before anything is applied - they are never applied automatically, and the user
+can undo them afterwards. At most 8 adjustments. If there is nothing to adjust,
+do not include the block.
 
 IMPORTANT: when you include an adjustment, ALWAYS fill in the 5 structured fields:
 suggestedRepsMin, suggestedRepsMax, suggestedSets, suggestedRIR, suggestedRestSec. If

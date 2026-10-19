@@ -91,6 +91,17 @@ export const coach = {
     error: 'Не удалось сохранить заметку.',
   },
   adjustments: {
+    actions: {
+      update: 'Изменить',
+      add: 'Добавить',
+      remove: 'Удалить',
+      move: 'Переместить',
+    },
+    inWorkout: '{workout}',
+    inWorkoutAt: '{workout}, позиция {position}',
+    undo: 'Отменить эти изменения',
+    undone: 'Изменения отменены.',
+    undoError: 'Не удалось отменить изменения.',
     title: 'Предлагаемые изменения',
     applied: 'Уже применено',
     description:

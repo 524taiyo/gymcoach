@@ -86,6 +86,17 @@ export const coach = {
     error: 'Could not save your note.',
   },
   adjustments: {
+    actions: {
+      update: 'Update',
+      add: 'Add',
+      remove: 'Remove',
+      move: 'Move',
+    },
+    inWorkout: '{workout}',
+    inWorkoutAt: '{workout}, position {position}',
+    undo: 'Undo these changes',
+    undone: 'Changes undone.',
+    undoError: 'Could not undo the changes.',
     title: 'Suggested adjustments',
     applied: 'Already applied',
     description:

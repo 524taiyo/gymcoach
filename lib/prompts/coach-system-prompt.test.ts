@@ -17,8 +17,13 @@ describe('coach system prompt positioning', () => {
     expect(COACH_SYSTEM_PROMPT).toMatch(/fill the "rationale"/i);
   });
 
-  it('forbids adding, removing or swapping exercises in an adjustment', () => {
-    expect(COACH_SYSTEM_PROMPT).toMatch(/Never propose adding, removing or swapping an exercise/i);
+  it('bounds structural changes: one workout, at most 3, never a restructure', () => {
+    expect(COACH_SYSTEM_PROMPT).toMatch(/"action" \("update" by\s+default, or "add", "remove", "move"\)/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/workoutName required, full prescription\s+required/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/At\s+most 3 structural changes per reply/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/never restructure the whole program/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/ALREADY in\s+the active program/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/user\s+can undo them/);
   });
 
   it('states adjustments are user-accepted, never auto-applied', () => {

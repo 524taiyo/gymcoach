@@ -14,6 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { programWeekInfo } from '@/lib/program-weeks';
+import { ProgramChangesCard } from '@/components/programs/program-changes-card';
+import type { ChangeBatchView } from '@/lib/program-changes';
 import { ProgramEditDialog } from '@/components/programs/program-edit-dialog';
 import { ProgramDeleteButton } from '@/components/programs/program-delete-button';
 import { WorkoutCard } from '@/components/programs/workout-card';
@@ -30,9 +32,16 @@ interface Props {
   // True right after "build it yourself" created the program: opens the
   // add-session dialog so the next step is already on screen.
   openAddSession?: boolean;
+  // Recent approved coach changes (lib/program-changes.ts groupChangeBatches).
+  changeBatches?: ChangeBatchView[];
 }
 
-export function ProgramDetailView({ program, catalog, openAddSession = false }: Props) {
+export function ProgramDetailView({
+  program,
+  catalog,
+  openAddSession = false,
+  changeBatches = [],
+}: Props) {
   const block = programWeekInfo(program, new Date());
   const t = useTranslations('programs');
   const common = useTranslations('common');
@@ -154,6 +163,8 @@ export function ProgramDetailView({ program, catalog, openAddSession = false }: 
           ))}
         </div>
       )}
+
+      <ProgramChangesCard batches={changeBatches} />
 
       <ProgramEditDialog open={editOpen} onOpenChange={setEditOpen} program={program} />
       <WorkoutFormDialog

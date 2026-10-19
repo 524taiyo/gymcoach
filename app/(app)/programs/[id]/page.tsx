@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { ProgramDetailView } from '@/components/programs/program-detail-view';
+import { groupChangeBatches } from '@/lib/program-changes';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -29,16 +30,34 @@ export default async function ProgramDetailPage(props: Props) {
 
   if (!program) notFound();
 
-  const exercisesCatalog = await db.exercise.findMany({
-    where: { userId: session.userId },
-    orderBy: [{ muscleGroup: 'asc' }, { name: 'asc' }],
-  });
+  const [exercisesCatalog, changeRows] = await Promise.all([
+    db.exercise.findMany({
+      where: { userId: session.userId },
+      orderBy: [{ muscleGroup: 'asc' }, { name: 'asc' }],
+    }),
+    // Recent approved coach changes on this program, for the undo history.
+    db.programChangeLog.findMany({
+      where: { programId: program.id, userId: session.userId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        batchId: true,
+        source: true,
+        action: true,
+        exerciseName: true,
+        workoutName: true,
+        createdAt: true,
+        undoneAt: true,
+      },
+    }),
+  ]);
 
   return (
     <main className="flex-1 px-4 py-6">
       <ProgramDetailView
         program={program}
         catalog={exercisesCatalog}
+        changeBatches={groupChangeBatches(changeRows)}
         openAddSession={searchParams.add === 'session'}
       />
     </main>

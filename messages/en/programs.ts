@@ -18,6 +18,16 @@ export const programs = {
   aiProgram: 'AI program',
   programName: 'Program name',
   programNamePlaceholder: 'e.g. Hypertrophy 2026 - Phase 1',
+  changes: {
+    title: 'Coach changes',
+    description: 'AI changes you approved. The latest one can be undone.',
+    sourceChat: 'Chat',
+    sourceDebrief: 'Weekly debrief',
+    undo: 'Undo',
+    undone: 'Changes undone.',
+    undoneBadge: 'Undone',
+    undoError: 'Could not undo the changes.',
+  },
   schedule: {
     title: 'Block schedule (optional)',
     startDate: 'Start date',

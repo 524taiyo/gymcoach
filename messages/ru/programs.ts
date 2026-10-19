@@ -23,6 +23,16 @@ export const programs = {
   aiProgram: 'Программа от ИИ',
   programName: 'Название программы',
   programNamePlaceholder: 'например: Гипертрофия 2026 - фаза 1',
+  changes: {
+    title: 'Изменения тренера',
+    description: 'Одобренные вами изменения ИИ. Последнее можно отменить.',
+    sourceChat: 'Чат',
+    sourceDebrief: 'Недельный разбор',
+    undo: 'Отменить',
+    undone: 'Изменения отменены.',
+    undoneBadge: 'Отменено',
+    undoError: 'Не удалось отменить изменения.',
+  },
   schedule: {
     title: 'План блока (необязательно)',
     startDate: 'Дата начала',

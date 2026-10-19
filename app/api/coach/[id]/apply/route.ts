@@ -27,7 +27,12 @@ export async function POST(req: Request, props: Params) {
       throw new ApiError(404, 'Debrief not found.');
     }
 
-    const { applied, skipped } = await applyAdjustmentsToActiveProgram(userId, adjustments);
+    const { applied, skipped, batchId } = await applyAdjustmentsToActiveProgram(
+      userId,
+      adjustments,
+      new Date(),
+      'debrief',
+    );
 
     // The write carries userId too (issue #317): marking a debrief applied
     // stays scoped even if the ownership check above is ever removed.
@@ -41,6 +46,7 @@ export async function POST(req: Request, props: Params) {
       appliedAt: updated.appliedAt,
       applied,
       skipped,
+      batchId,
     });
   } catch (err) {
     return handleApiError(err);

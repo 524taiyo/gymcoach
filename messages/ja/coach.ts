@@ -89,6 +89,17 @@ export const coach = {
     error: 'メモを保存できませんでした。',
   },
   adjustments: {
+    actions: {
+      update: '変更',
+      add: '追加',
+      remove: '削除',
+      move: '並べ替え',
+    },
+    inWorkout: '{workout}',
+    inWorkoutAt: '{workout} の {position} 番目',
+    undo: 'この変更を元に戻す',
+    undone: '変更を元に戻しました。',
+    undoError: '元に戻せませんでした。',
     title: '提案された調整',
     applied: '適用済み',
     description:

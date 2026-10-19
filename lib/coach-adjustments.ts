@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ExerciseCategory, MuscleGroup } from '@/lib/prisma-client';
 
 // ============================================================
 // Adjustments proposed by the coach (BATCH 10)
@@ -7,19 +8,74 @@ import { z } from 'zod';
 // containing a JSON array at the end of each debrief. We extract, validate
 // (Zod) and expose the result to the UI without touching the displayed markdown.
 
-export const adjustmentSchema = z.object({
-  exerciseName: z.string().trim().min(1).max(120),
-  summary: z.string().trim().min(1).max(300),
-  rationale: z.string().trim().max(800).optional().nullable(),
-  suggestedRepsMin: z.number().int().min(1).max(50).optional().nullable(),
-  suggestedRepsMax: z.number().int().min(1).max(50).optional().nullable(),
-  suggestedSets: z.number().int().min(1).max(20).optional().nullable(),
-  suggestedRIR: z.number().int().min(0).max(5).optional().nullable(),
-  suggestedRestSec: z.number().int().min(15).max(600).optional().nullable(),
-  currentLoad: z.number().min(0).max(1000).optional().nullable(),
-  suggestedLoad: z.number().min(0).max(1000).optional().nullable(),
-  note: z.string().trim().max(500).optional().nullable(),
-});
+// What an adjustment does to the active program. 'update' (the default, and
+// the only kind before structural changes existed) retunes an exercise that is
+// already there; 'add', 'remove' and 'move' change the structure of ONE
+// workout. Every kind is applied only after the user approves it, is logged,
+// and can be undone (lib/program-changes.ts).
+export const ADJUSTMENT_ACTIONS = ['update', 'add', 'remove', 'move'] as const;
+export type AdjustmentAction = (typeof ADJUSTMENT_ACTIONS)[number];
+
+export const adjustmentSchema = z
+  .object({
+    action: z.enum(ADJUSTMENT_ACTIONS).optional(),
+    exerciseName: z.string().trim().min(1).max(120),
+    // Workout the change targets, matched exactly by name. Required for add
+    // and move; for update/remove it narrows an exercise that appears in
+    // several workouts.
+    workoutName: z.string().trim().min(1).max(120).optional().nullable(),
+    // 1-based position inside the workout (add: where to insert, default at
+    // the end; move: required destination).
+    position: z.number().int().min(1).max(30).optional().nullable(),
+    // Only used by 'add' when the exercise is not in the user's catalog yet.
+    muscleGroup: z.nativeEnum(MuscleGroup).optional().nullable(),
+    category: z.nativeEnum(ExerciseCategory).optional().nullable(),
+    summary: z.string().trim().min(1).max(300),
+    rationale: z.string().trim().max(800).optional().nullable(),
+    suggestedRepsMin: z.number().int().min(1).max(50).optional().nullable(),
+    suggestedRepsMax: z.number().int().min(1).max(50).optional().nullable(),
+    suggestedSets: z.number().int().min(1).max(20).optional().nullable(),
+    suggestedRIR: z.number().int().min(0).max(5).optional().nullable(),
+    suggestedRestSec: z.number().int().min(15).max(600).optional().nullable(),
+    currentLoad: z.number().min(0).max(1000).optional().nullable(),
+    suggestedLoad: z.number().min(0).max(1000).optional().nullable(),
+    note: z.string().trim().max(500).optional().nullable(),
+  })
+  .superRefine((a, ctx) => {
+    const action = a.action ?? 'update';
+    if ((action === 'add' || action === 'move') && !a.workoutName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `A ${action} needs the target workoutName.`,
+        path: ['workoutName'],
+      });
+    }
+    if (action === 'move' && a.position == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A move needs the destination position.',
+        path: ['position'],
+      });
+    }
+    if (action === 'add') {
+      const missing = (
+        [
+          'suggestedSets',
+          'suggestedRepsMin',
+          'suggestedRepsMax',
+          'suggestedRIR',
+          'suggestedRestSec',
+        ] as const
+      ).filter((k) => a[k] == null);
+      if (missing.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `An add needs the full prescription (${missing.join(', ')}).`,
+          path: [missing[0]!],
+        });
+      }
+    }
+  });
 
 export type Adjustment = z.infer<typeof adjustmentSchema>;
 

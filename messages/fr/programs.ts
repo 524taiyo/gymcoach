@@ -22,6 +22,16 @@ export const programs = {
   aiProgram: 'Programme IA',
   programName: 'Nom du programme',
   programNamePlaceholder: 'ex. Hypertrophie 2026 - Phase 1',
+  changes: {
+    title: 'Changements du coach',
+    description: 'Changements de l’IA que vous avez approuvés. Le dernier peut être annulé.',
+    sourceChat: 'Chat',
+    sourceDebrief: 'Bilan hebdomadaire',
+    undo: 'Annuler',
+    undone: 'Changements annulés.',
+    undoneBadge: 'Annulé',
+    undoError: 'Impossible d’annuler les changements.',
+  },
   schedule: {
     title: 'Calendrier du bloc (facultatif)',
     startDate: 'Date de début',
