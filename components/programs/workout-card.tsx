@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { estimateWorkoutMinutes } from '@/lib/today-workout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,9 +41,11 @@ type WorkoutWithExercises = Workout & { exercises: ProgramExerciseWithExercise[]
 interface Props {
   workout: WorkoutWithExercises;
   catalog: Exercise[];
+  // Program session time budget in minutes; the estimate is flagged above it.
+  budgetMin?: number | null;
 }
 
-export function WorkoutCard({ workout, catalog }: Props) {
+export function WorkoutCard({ workout, catalog, budgetMin = null }: Props) {
   const t = useTranslations('programs.workout');
   const exerciseT = useTranslations('programs.exercise');
   const common = useTranslations('common');
@@ -70,6 +73,11 @@ export function WorkoutCard({ workout, catalog }: Props) {
 
   const dayKey = workout.dayOfWeek != null ? DAY_KEYS[workout.dayOfWeek - 1] : null;
   const dayLabel = dayKey ? common(`days.${dayKey}`) : null;
+  // Includes warm-up ramps and moving between stations (lib/today-workout.ts).
+  const minutes = estimateWorkoutMinutes(
+    workout.exercises.map((pe) => ({ ...pe, category: pe.exercise.category })),
+    { detailed: true },
+  );
 
   // Superset pairing (issue #146, slice 1): rows render in presentation order
   // (group members together) with A1/A2 labels derived on read.
@@ -138,6 +146,13 @@ export function WorkoutCard({ workout, catalog }: Props) {
             <div className="mt-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
               {dayLabel && <Badge variant="secondary">{dayLabel}</Badge>}
               <span>{common('counts.exercises', { count: workout.exercises.length })}</span>
+              {workout.exercises.length > 0 && (
+                <span className={minutes > (budgetMin ?? Infinity) ? 'text-destructive' : undefined}>
+                  {budgetMin != null && minutes > budgetMin
+                    ? t('minutesOverBudget', { minutes, budget: budgetMin })
+                    : t('minutes', { minutes })}
+                </span>
+              )}
             </div>
           </div>
           <DropdownMenu>

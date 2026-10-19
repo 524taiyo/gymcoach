@@ -55,6 +55,14 @@ export interface WorkoutExerciseTargets {
   targetRepsMin: number;
   targetRepsMax: number;
   restSec: number;
+  // Exercise category; only read by the detailed estimate (warm-up ramps).
+  category?: string;
+}
+
+export interface EstimateOptions {
+  // Also count moving between exercises and the warm-up ramp before heavy
+  // compounds. Off by default so existing callers keep the original number.
+  detailed?: boolean;
 }
 
 // Rough setup cost of a session: getting changed, warming up, walking to the
@@ -66,10 +74,30 @@ const SECONDS_PER_REP = 3.5;
 
 // "About M minutes" for a planned workout, rounded to the nearest 5 so the
 // number never pretends to a precision it does not have.
-export function estimateWorkoutMinutes(exercises: readonly WorkoutExerciseTargets[]): number {
+// Detailed estimate: walking to the next station, loading it, a test rep.
+const TRANSITION_SECONDS = 60;
+// A heavy compound (top of range at or below this) gets a warm-up ramp of
+// WARMUP_SETS sets of WARMUP_REPS with WARMUP_REST_SECONDS between them,
+// roughly what lib/warmup.ts prescribes.
+const WARMUP_HEAVY_MAX_REPS = 8;
+const WARMUP_SETS = 3;
+const WARMUP_REPS = 5;
+const WARMUP_REST_SECONDS = 60;
+
+export function estimateWorkoutMinutes(
+  exercises: readonly WorkoutExerciseTargets[],
+  options: EstimateOptions = {},
+): number {
   const seconds = exercises.reduce((total, e) => {
     const avgReps = (e.targetRepsMin + e.targetRepsMax) / 2;
-    return total + e.targetSets * (avgReps * SECONDS_PER_REP + e.restSec);
+    let exerciseSeconds = e.targetSets * (avgReps * SECONDS_PER_REP + e.restSec);
+    if (options.detailed) {
+      exerciseSeconds += TRANSITION_SECONDS;
+      if (e.category === 'COMPOUND' && e.targetRepsMax <= WARMUP_HEAVY_MAX_REPS) {
+        exerciseSeconds += WARMUP_SETS * (WARMUP_REPS * SECONDS_PER_REP + WARMUP_REST_SECONDS);
+      }
+    }
+    return total + exerciseSeconds;
   }, 0);
   const minutes = SETUP_MINUTES + seconds / 60;
   return Math.max(SETUP_MINUTES, Math.round(minutes / 5) * 5);

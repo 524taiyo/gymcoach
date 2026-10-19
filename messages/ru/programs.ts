@@ -74,6 +74,8 @@ export const programs = {
   templateAttributionHint: 'Выполняется как написано; тренер советует в этих рамках.',
   showAllTemplates: 'Показать все шаблоны ({count})',
   workout: {
+    minutes: 'Около {minutes} мин',
+    minutesOverBudget: 'Около {minutes} мин (больше лимита {budget} мин)',
     actions: 'Действия с тренировкой',
     edit: 'Изменить тренировку',
     create: 'Новая тренировка',

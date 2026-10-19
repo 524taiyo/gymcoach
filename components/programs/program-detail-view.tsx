@@ -145,7 +145,12 @@ export function ProgramDetailView({ program, catalog, openAddSession = false }: 
       ) : (
         <div className="flex flex-col gap-4">
           {program.workouts.map((w) => (
-            <WorkoutCard key={w.id} workout={w} catalog={catalog} />
+            <WorkoutCard
+              key={w.id}
+              workout={w}
+              catalog={catalog}
+              budgetMin={program.sessionBudgetMin}
+            />
           ))}
         </div>
       )}

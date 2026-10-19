@@ -73,6 +73,8 @@ export const programs = {
   templateAttributionHint: '原典どおりに実行し、コーチはその範囲内で助言します。',
   showAllTemplates: 'テンプレートをすべて表示 ({count})',
   workout: {
+    minutes: '約{minutes}分',
+    minutesOverBudget: '約{minutes}分 (上限 {budget}分超過)',
     actions: 'セッションアクション',
     edit: 'セッションを編集',
     create: '新しいセッション',

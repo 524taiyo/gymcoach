@@ -86,6 +86,15 @@ export const progress = {
     description:
       'Weekly cardio minutes versus the {target} min/week guideline. Distance and sessions appear in the tooltip.',
   },
+  weeklySets: {
+    title: 'Weekly hard sets per muscle',
+    description: 'Program plan and logged sets against each muscle band (MEV-MRV). Default {mev}-{mrv} sets/week.',
+    band: 'Band {mev}-{mrv}',
+    planned: 'Plan {sets}',
+    thisWeek: 'This week {sets}',
+    lastWeek: 'Last week {sets}',
+    note: 'Working sets only (no warm-ups or cardio), counted once for the primary muscle. Secondary muscles are not credited.',
+  },
   recomp: {
     title: 'Recomp check',
     description: 'Whether strength is holding while you cut, next to your bodyweight and waist trend.',

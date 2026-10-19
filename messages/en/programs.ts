@@ -69,6 +69,8 @@ export const programs = {
   templateAttributionHint: 'Runs as written; the coach advises within it.',
   showAllTemplates: 'Show all {count} templates',
   workout: {
+    minutes: 'About {minutes} min',
+    minutesOverBudget: 'About {minutes} min (over {budget} min limit)',
     actions: 'Session actions',
     edit: 'Edit session',
     create: 'New session',

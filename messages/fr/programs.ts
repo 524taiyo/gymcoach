@@ -74,6 +74,8 @@ export const programs = {
   templateAttributionHint: 'Exécuté tel quel ; le coach conseille dans ce cadre.',
   showAllTemplates: 'Voir les {count} modèles',
   workout: {
+    minutes: 'Environ {minutes} min',
+    minutesOverBudget: 'Environ {minutes} min (au-delà de {budget} min)',
     actions: 'Actions de la séance',
     edit: 'Modifier la séance',
     create: 'Nouvelle séance',

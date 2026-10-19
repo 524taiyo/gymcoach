@@ -40,6 +40,7 @@ export default async function DashboardPage() {
                 targetRepsMin: true,
                 targetRepsMax: true,
                 restSec: true,
+                exercise: { select: { category: true } },
               },
             },
           },
@@ -151,7 +152,10 @@ export default async function DashboardPage() {
               workoutId={todayWorkoutRow.id}
               workoutName={getTrainingDisplayName(todayWorkoutRow.name, locale)}
               exerciseCount={todayWorkoutRow.exercises.length}
-              minutes={estimateWorkoutMinutes(todayWorkoutRow.exercises)}
+              minutes={estimateWorkoutMinutes(
+                todayWorkoutRow.exercises.map((e) => ({ ...e, category: e.exercise.category })),
+                { detailed: true },
+              )}
               gymId={user?.activeGymId ?? null}
               block={programWeekInfo(activeProgram, new Date())}
               budgetMin={activeProgram.sessionBudgetMin}

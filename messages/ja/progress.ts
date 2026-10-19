@@ -89,6 +89,15 @@ export const progress = {
     description:
       '週次の有酸素運動時間と {target} 分/週のガイドラインとの比較。距離とセッション数はツールチップに表示されます。',
   },
+  weeklySets: {
+    title: '部位別 週間ハードセット数',
+    description: 'プログラムの計画と実績を各部位の基準 (MEV-MRV) と比較します。デフォルトは {mev}-{mrv} セット/週。',
+    band: '基準 {mev}-{mrv}',
+    planned: '計画 {sets}',
+    thisWeek: '今週 {sets}',
+    lastWeek: '先週 {sets}',
+    note: 'ウォームアップと有酸素を除くワーキングセットを、主働筋1つでカウントしています。補助筋への効果は含みません。',
+  },
   recomp: {
     title: 'リコンプ チェック',
     description: '減量中に筋力を維持できているか、体重・腹囲の変化と合わせて確認します。',
