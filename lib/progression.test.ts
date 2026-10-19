@@ -380,3 +380,91 @@ describe('suggestNextWeight planned deload', () => {
     expect(res).toEqual({ weight: null, reason: 'no-history' });
   });
 });
+
+describe('suggestNextWeight - RIR-aware progression (opt-in)', () => {
+  const rir = { rirAware: true };
+  const pe = makePe(compoundExo); // 6-10 reps, target RIR 2
+  const sets = (reps: number, r: number | null) => [
+    { weight: 80, reps, rir: r },
+    { weight: 80, reps, rir: r },
+    { weight: 80, reps, rir: r },
+  ];
+
+  it('progresses at the top of the range when RIR is at target', () => {
+    expect(suggestNextWeight(pe, sets(10, 2), null, false, null, rir)).toMatchObject({
+      weight: 82.5,
+      reason: 'progression',
+    });
+  });
+
+  it('still progresses when the hardest set is only 1 RIR below target', () => {
+    const s = [...sets(10, 2).slice(0, 2), { weight: 80, reps: 10, rir: 1 }];
+    expect(suggestNextWeight(pe, s, null, false, null, rir).reason).toBe('progression');
+  });
+
+  it('holds instead of progressing when the top of the range was ground out', () => {
+    const s = [...sets(10, 2).slice(0, 2), { weight: 80, reps: 10, rir: 0 }];
+    expect(suggestNextWeight(pe, s, null, false, null, rir)).toMatchObject({
+      weight: 80,
+      reason: 'rir-hold',
+      workingWeight: 80,
+    });
+  });
+
+  it('steps down 5% when a set missed the bottom of the range at failure', () => {
+    const s = [{ weight: 80, reps: 7, rir: 1 }, { weight: 80, reps: 5, rir: 0 }];
+    expect(suggestNextWeight(pe, s, null, false, null, rir)).toMatchObject({
+      weight: 76,
+      reason: 'rir-reduce',
+      workingWeight: 80,
+    });
+  });
+
+  it('keeps the load when a set missed the range but with reserve left', () => {
+    const s = [{ weight: 80, reps: 5, rir: 2 }];
+    expect(suggestNextWeight(pe, s, null, false, null, rir).reason).toBe('same-as-last');
+  });
+
+  it('falls back to the rep-only rule when no RIR was logged', () => {
+    for (const reps of [10, 5]) {
+      expect(suggestNextWeight(pe, sets(reps, null), null, false, null, rir)).toEqual(
+        suggestNextWeight(pe, sets(reps, null)),
+      );
+    }
+  });
+
+  it('is byte-identical to the rep-only rule when the option is off', () => {
+    const s = [...sets(10, 2).slice(0, 2), { weight: 80, reps: 10, rir: 0 }];
+    expect(suggestNextWeight(pe, s)).toMatchObject({ weight: 82.5, reason: 'progression' });
+  });
+
+  it('never steps down a bodyweight (0 kg) load', () => {
+    const s = [{ weight: 0, reps: 4, rir: 0 }];
+    expect(suggestNextWeight(pe, s, null, false, null, rir).reason).toBe('same-as-last');
+  });
+
+  it('a planned deload still takes precedence', () => {
+    const s = [{ weight: 80, reps: 4, rir: 0 }];
+    expect(suggestNextWeight(pe, s, null, true, null, rir)).toMatchObject({
+      weight: 72,
+      reason: 'planned-deload',
+    });
+  });
+
+  it('a readiness hold does not raise an RIR step-down back to the working load', () => {
+    const drainedHold: ReadinessSignal = { readiness: 2, ageHours: 1 };
+    const s = [{ weight: 80, reps: 4, rir: 0 }];
+    expect(suggestNextWeight(pe, s, drainedHold, false, null, rir)).toMatchObject({
+      weight: 76,
+      reason: 'rir-reduce',
+    });
+  });
+
+  it('a readiness hold overrides an RIR-aware progression', () => {
+    const hold: ReadinessSignal = { readiness: 2, ageHours: 1 };
+    expect(suggestNextWeight(pe, sets(10, 2), hold, false, null, rir)).toMatchObject({
+      weight: 80,
+      reason: 'readiness-hold',
+    });
+  });
+});

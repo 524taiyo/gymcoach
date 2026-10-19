@@ -183,6 +183,8 @@ export const session = {
     suggestionHelp: '提案の計算方法',
     notes: 'メモ / マインドマッスルキュー',
     readiness: {
+      rirHeld: '維持 - 前回は予定よりきつかった',
+      rirLighter: '軽め - 前回は限界で回数不足',
       planned: '軽め - 計画的なデロードウィーク',
       sorenessLighter: '軽め - 報告された筋肉痛',
       sorenessHeld: '維持 - 報告された筋肉痛',
@@ -196,6 +198,8 @@ export const session = {
         '回復が低いため、今日は {weight} で重量を維持します。重量ではなく回数を伸ばしてください。',
       readinessDeload:
         '回復が非常に低いため、軽めのセッションのために {weight} から重量を下げます。',
+      rirHold: '{weight} で上限回数に届きましたが、RIRが目標より大きく下回ったため重量を維持します。目標RIRで上限回数に届いたら増量します。',
+      rirReduce: '{weight} で限界まで行っても {reps} 回に届かなかったため、レンジに戻すために重量を約5%下げます。',
       plannedDeload:
         '計画的なデロードウィークのため、重量が {weight} より約10%軽くなっています。',
       hold: '同じ重量を維持して回数を伸ばしてください。すべてのセットが {reps} 回に達したら増加します。',

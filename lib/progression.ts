@@ -21,7 +21,14 @@ export type SuggestionReason =
   | 'progression'
   | 'readiness-hold'
   | 'readiness-deload'
-  | 'planned-deload';
+  | 'planned-deload'
+  // RIR-aware progression (opt-in): the top of the range was reached, but the
+  // logged RIR shows the sets were much harder than prescribed, so the load is
+  // held instead of increased.
+  | 'rir-hold'
+  // RIR-aware progression (opt-in): a working set fell below the bottom of the
+  // range at RIR 0, so the load is reduced once.
+  | 'rir-reduce';
 
 export interface SuggestionResult {
   weight: number | null;
@@ -78,6 +85,27 @@ export interface ReadinessSignal {
 // signal is dropped (returns null), so the suggestion follows pure programmed
 // progression - identical to the pre-#55 behavior. When on, the signal passes
 // through unchanged. Kept pure so the gate is unit-testable on its own.
+// ------------------------------------------------------------
+// RIR-aware progression thresholds (opt-in via SuggestionOptions.rirAware)
+// ------------------------------------------------------------
+// Reaching the top of the range is only a reason to add load if the sets were
+// not much harder than prescribed. When the hardest working set was logged
+// this many RIR (or more) below the target, the load is held.
+export const RIR_HOLD_BELOW_TARGET = 2;
+// A working set under the bottom of the range taken to this RIR or lower means
+// the load is too heavy for the prescription: step it down once.
+export const RIR_REDUCE_AT_OR_BELOW = 0;
+// Single step-down for an overshooting load. Smaller than the readiness
+// deload (10%): the goal is to land back inside the rep range, not to recover.
+export const RIR_REDUCE_FRACTION = 0.05;
+
+export interface SuggestionOptions {
+  // Use the logged RIR of the last session's working sets. Sets with no RIR
+  // logged are ignored; with no logged RIR at all the result is identical to
+  // the plain rep-based rule.
+  rirAware?: boolean;
+}
+
 export function readinessForSuggestion(
   readiness: ReadinessSignal | null,
   autoRegulationEnabled: boolean,
@@ -94,6 +122,7 @@ export function suggestNextWeight(
   // so this module stays deterministic.
   plannedDeload?: boolean,
   loadConstraints?: GymLoadConstraints | null,
+  options?: SuggestionOptions,
 ): SuggestionResult {
   if (lastSets.length === 0) {
     return { weight: null, reason: 'no-history' };
@@ -109,7 +138,12 @@ export function suggestNextWeight(
 
   // Baseline (readiness-unaware) suggestion - identical to the original rule.
   const delta = weightIncrement(programExercise.exercise.category);
-  const baseline: SuggestionResult = allHitTopRange
+  const rirBaseline = options?.rirAware
+    ? rirAwareBaseline(programExercise, workingSets, workingWeight, allHitTopRange)
+    : null;
+  const baseline: SuggestionResult = rirBaseline
+    ? rirBaseline
+    : allHitTopRange
     ? {
         weight: +(workingWeight + delta).toFixed(2),
         reason: 'progression',
@@ -170,7 +204,16 @@ export function suggestNextWeight(
     );
   }
 
-  // hold: keep the working load, drop any progression increment.
+  // hold: keep the working load, drop any progression increment. An RIR
+  // step-down is already below the working load, so it stands.
+  if (baseline.reason === 'rir-reduce') {
+    return constrainSuggestion(
+      baseline,
+      workingWeight,
+      programExercise.exercise.category,
+      loadConstraints,
+    );
+  }
   return constrainSuggestion(
     {
       weight: workingWeight,
@@ -182,6 +225,40 @@ export function suggestNextWeight(
     programExercise.exercise.category,
     loadConstraints,
   );
+}
+
+// The RIR-aware override of the baseline rule. Returns null when the logged RIR
+// does not change the plain rep-based decision (or when no RIR was logged).
+function rirAwareBaseline(
+  programExercise: ProgramExercise,
+  workingSets: Pick<Set, 'weight' | 'reps' | 'rir'>[],
+  workingWeight: number,
+  allHitTopRange: boolean,
+): SuggestionResult | null {
+  const logged = workingSets.filter((s): s is typeof s & { rir: number } => s.rir != null);
+  if (logged.length === 0) return null;
+  const hardestRir = Math.min(...logged.map((s) => s.rir));
+  const targetRepsMax = programExercise.targetRepsMax;
+
+  if (allHitTopRange) {
+    if (hardestRir <= programExercise.targetRIR - RIR_HOLD_BELOW_TARGET) {
+      return { weight: workingWeight, reason: 'rir-hold', workingWeight, targetRepsMax };
+    }
+    return null;
+  }
+
+  const missedAtFailure = logged.some(
+    (s) => s.reps < programExercise.targetRepsMin && s.rir <= RIR_REDUCE_AT_OR_BELOW,
+  );
+  if (missedAtFailure && workingWeight > 0) {
+    return {
+      weight: +(workingWeight * (1 - RIR_REDUCE_FRACTION)).toFixed(2),
+      reason: 'rir-reduce',
+      workingWeight,
+      targetRepsMax,
+    };
+  }
+  return null;
 }
 
 function constrainSuggestion(
