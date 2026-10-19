@@ -142,4 +142,10 @@ describe('12-week body recomp template', () => {
       }
     }
   });
+
+  it('schedules a 12-week block with deloads in weeks 4 and 8 and a 75 min budget', () => {
+    expect(template!.program.durationWeeks).toBe(12);
+    expect(template!.program.deloadWeeks).toEqual([4, 8]);
+    expect(template!.program.sessionBudgetMin).toBe(75);
+  });
 });

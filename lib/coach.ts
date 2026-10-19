@@ -22,6 +22,7 @@ import {
   isDeloadActive,
   recommendDeload,
 } from '@/lib/deload';
+import { programWeekInfo } from '@/lib/program-weeks';
 import { COACH_SYSTEM_PROMPT } from '@/lib/prompts/coach-system-prompt';
 import { exerciseRecords, type ExerciseRecord } from '@/lib/records';
 import { getLlmProvider } from '@/lib/llm';
@@ -301,6 +302,17 @@ interface ProgramSummary {
   id: string;
   name: string;
   phase: string;
+  // Current week of a program with a planned length (lib/program-weeks.ts),
+  // e.g. week 4 of 12 and a scheduled deload. Null for open-ended programs.
+  block: {
+    week: number;
+    totalWeeks: number;
+    deloadWeeks: number[];
+    isDeloadWeek: boolean;
+    finished: boolean;
+  } | null;
+  // Target session length in minutes, or null when none is set.
+  sessionBudgetMin: number | null;
   workouts: Array<{
     name: string;
     // Planned weekday, 1 (Monday) .. 7 (Sunday), or null when the workout is
@@ -524,7 +536,10 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
       ...fatigue,
       // Planned deload week (issue #112): additive flag; an expired
       // deloadUntil reads as inactive.
-      deloadActive: isDeloadActive(user?.deloadUntil ?? null, now),
+      // A deload week scheduled on the active program block counts too.
+      deloadActive:
+        isDeloadActive(user?.deloadUntil ?? null, now) ||
+        (activeProgram?.block?.isDeloadWeek ?? false),
     },
     conditioning,
     records,
@@ -655,10 +670,21 @@ async function fetchActiveProgram(userId: string): Promise<ProgramSummary | null
     },
   });
   if (!program) return null;
+  const block = programWeekInfo(program, new Date());
   return {
     id: program.id,
     name: program.name,
     phase: program.phase,
+    block: block
+      ? {
+          week: block.week,
+          totalWeeks: block.totalWeeks,
+          deloadWeeks: program.deloadWeeks,
+          isDeloadWeek: block.isDeloadWeek,
+          finished: block.finished,
+        }
+      : null,
+    sessionBudgetMin: program.sessionBudgetMin,
     workouts: program.workouts.map((w) => ({
       name: w.name,
       dayOfWeek: w.dayOfWeek ?? null,

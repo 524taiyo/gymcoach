@@ -13,11 +13,12 @@ import {
 import {
   DELOAD_READINESS_LOOKBACK,
   DELOAD_READINESS_MAX_AGE_DAYS,
-  isDeloadActive,
   recommendDeload,
+  isDeloadActive,
 } from '@/lib/deload';
 import { ProgressDashboard } from '@/components/progress/progress-dashboard';
 import { ConsistencyCard } from '@/components/progress/consistency-card';
+import { plannedDeloadEnd, programWeekInfo } from '@/lib/program-weeks';
 import { DeloadBanner } from '@/components/progress/deload-banner';
 import { BodyweightCard } from '@/components/progress/bodyweight-card';
 import { SectionTabs } from '@/components/shared/section-tabs';
@@ -52,6 +53,7 @@ export default async function ProgressPage(
   const [
     exercisesWithSets,
     user,
+    activeSchedule,
     finishedSessions,
     windowSets,
     recentCheckins,
@@ -76,6 +78,10 @@ export default async function ProgressPage(
     db.user.findUnique({
       where: { id: auth.userId },
       select: { bodyweight: true, unit: true, weeklyFrequency: true, deloadUntil: true },
+    }),
+    db.program.findFirst({
+      where: { userId: auth.userId, isActive: true },
+      select: { startDate: true, durationWeeks: true, deloadWeeks: true },
     }),
     // Finished sessions over the window, for the consistency card.
     db.session.findMany({
@@ -238,8 +244,13 @@ export default async function ProgressPage(
     recentReadiness: recentCheckins.map((c) => c.readiness),
   });
 
-  const deloadActive = isDeloadActive(user?.deloadUntil ?? null, new Date());
-  const deloadUntilIso = deloadActive ? user!.deloadUntil!.toISOString() : null;
+  // The one-tap deload or a deload week scheduled on the active program.
+  const now = new Date();
+  const deloadUntilIso =
+    plannedDeloadEnd(user?.deloadUntil ?? null, activeSchedule, now)?.toISOString() ?? null;
+  const deloadActive = deloadUntilIso != null;
+  const manualDeloadActive = isDeloadActive(user?.deloadUntil ?? null, now);
+  const blockWeek = programWeekInfo(activeSchedule, now);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -274,7 +285,12 @@ export default async function ProgressPage(
         ) : (
           <>
             {(deload.recommended || deloadActive) && (
-              <DeloadBanner reasons={deload.reasons} deloadUntil={deloadUntilIso} />
+              <DeloadBanner
+                reasons={deload.reasons}
+                deloadUntil={deloadUntilIso}
+                scheduledWeek={blockWeek?.isDeloadWeek ? blockWeek.week : null}
+                canEnd={manualDeloadActive}
+              />
             )}
             <ConsistencyCard
               weeks={consistency.weeks}

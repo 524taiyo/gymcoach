@@ -90,6 +90,8 @@ export const progress = {
       '週次の有酸素運動時間と {target} 分/週のガイドラインとの比較。距離とセッション数はツールチップに表示されます。',
   },
   deload: {
+    scheduledTitle: '{week}週目: 計画デロード週',
+    scheduledDescription: '{date} まで負荷の提案が約10%軽くなります。今週は各種目のセット数も1つ減らしてください。',
     activeTitle: 'デロードウィーク進行中',
     activeDescription:
       '{date} まで、負荷の提案が約10%軽くなります。その後は自動的に通常の進歩に戻ります。',

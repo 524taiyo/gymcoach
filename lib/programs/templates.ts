@@ -48,6 +48,9 @@ const RECOMP_12_WEEK: ProgramTemplate = {
     description:
       'Twelve-week recomposition block: maintain strength and muscle while losing fat. Heavy pressing, squatting and pulling preserve strength; higher-rep upper work biases shoulders, chest and lats. Deload in weeks 4 and 8. Sunday off.',
     phase: 'Recomp',
+    durationWeeks: 12,
+    deloadWeeks: [4, 8],
+    sessionBudgetMin: 75,
     workouts: [
       {
         name: 'Mon - Chest, Shoulders, Triceps (heavy press)',

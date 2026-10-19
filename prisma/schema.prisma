@@ -190,19 +190,30 @@ enum ExerciseCategory {
 }
 
 model Program {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  name        String
-  description String?
-  phase       String
-  isActive    Boolean   @default(false)
-  startDate   DateTime  @default(now())
-  endDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  workouts    Workout[]
-  sessions    Session[]
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  name             String
+  description      String?
+  phase            String
+  isActive         Boolean   @default(false)
+  startDate        DateTime  @default(now())
+  endDate          DateTime?
+  // Planned block length in weeks, counted from the ISO week of startDate
+  // (lib/program-weeks.ts). Null = open-ended program (backward-safe additive
+  // column): no week counter and no scheduled deload weeks.
+  durationWeeks    Int?
+  // 1-based block weeks that are planned deloads (e.g. [4, 8]). While the
+  // current week is listed, load suggestions apply the planned-deload
+  // step-down exactly like User.deloadUntil does. Empty = none scheduled.
+  deloadWeeks      Int[]     @default([])
+  // Target session length in minutes, compared against the workout time
+  // estimate. Null = no budget.
+  sessionBudgetMin Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workouts         Workout[]
+  sessions         Session[]
 }
 
 model Workout {

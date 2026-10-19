@@ -87,6 +87,8 @@ export const progress = {
       'Weekly cardio minutes versus the {target} min/week guideline. Distance and sessions appear in the tooltip.',
   },
   deload: {
+    scheduledTitle: 'Week {week}: planned deload',
+    scheduledDescription: 'Load suggestions are about 10% lighter until {date}. Also do one fewer set per exercise this week.',
     activeTitle: 'Deload week in progress',
     activeDescription:
       'Until {date}, load suggestions are about 10% lighter. Normal progression resumes automatically afterwards.',

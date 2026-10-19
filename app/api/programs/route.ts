@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { programInputSchema } from '@/lib/schemas/program';
+import { dayToStartDate, normalizeDeloadWeeks, programInputSchema } from '@/lib/schemas/program';
 import { handleApiError, parseJsonBody, requireApiUserId } from '@/lib/api';
 
 export async function GET(req: Request) {
@@ -32,6 +32,12 @@ export async function POST(req: Request) {
         name: data.name,
         phase: data.phase,
         description: data.description ?? null,
+        ...(data.startDate !== undefined ? { startDate: dayToStartDate(data.startDate) } : {}),
+        ...(data.durationWeeks !== undefined ? { durationWeeks: data.durationWeeks } : {}),
+        ...(data.deloadWeeks !== undefined
+          ? { deloadWeeks: normalizeDeloadWeeks(data.deloadWeeks) }
+          : {}),
+        ...(data.sessionBudgetMin !== undefined ? { sessionBudgetMin: data.sessionBudgetMin } : {}),
         isActive: false,
       },
     });

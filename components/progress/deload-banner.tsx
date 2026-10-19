@@ -15,13 +15,19 @@ interface Props {
   // End of the active planned deload week (ISO string), or null when none is
   // running. The server only passes a future timestamp here.
   deloadUntil: string | null;
+  // Block week number when the running deload is a week scheduled on the
+  // active program (lib/program-weeks.ts), else null/omitted.
+  scheduledWeek?: number | null;
+  // Whether the one-tap deload (User.deloadUntil) is running, so it can be
+  // ended early. A scheduled week cannot be ended from here.
+  canEnd?: boolean;
 }
 
 // Banner shown on the progress page when recommendDeload fires or a planned
 // deload week is running (issue #112). One tap starts the deload week (the
 // suggestion engine then steps loads down ~10%); while active it shows the end
 // date and lets the user end it early.
-export function DeloadBanner({ reasons, deloadUntil }: Props) {
+export function DeloadBanner({ reasons, deloadUntil, scheduledWeek, canEnd = true }: Props) {
   const t = useTranslations('progress.deload');
   const format = useFormatter();
   const exerciseName = useExerciseName();
@@ -77,16 +83,26 @@ export function DeloadBanner({ reasons, deloadUntil }: Props) {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Illustration name="recovery" size={22} />
-            <h2 className="text-base font-semibold">{t('activeTitle')}</h2>
+            <h2 className="text-base font-semibold">
+              {scheduledWeek != null
+                ? t('scheduledTitle', { week: scheduledWeek })
+                : t('activeTitle')}
+            </h2>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm">
-          <p className="text-muted-foreground">{t('activeDescription', { date: endDate })}</p>
-          <div>
-            <Button variant="outline" size="sm" onClick={endDeload} disabled={busy}>
-              {t('end')}
-            </Button>
-          </div>
+          <p className="text-muted-foreground">
+            {scheduledWeek != null
+              ? t('scheduledDescription', { date: endDate })
+              : t('activeDescription', { date: endDate })}
+          </p>
+          {canEnd && (
+            <div>
+              <Button variant="outline" size="sm" onClick={endDeload} disabled={busy}>
+                {t('end')}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

@@ -91,6 +91,8 @@ export const progress = {
       'Minutes de cardio hebdomadaires par rapport au repère de {target} min/semaine. Distance et séances apparaissent dans l’infobulle.',
   },
   deload: {
+    scheduledTitle: 'Semaine {week} : décharge planifiée',
+    scheduledDescription: 'Les charges suggérées sont environ 10 % plus légères jusqu’au {date}. Faites aussi une série de moins par exercice cette semaine.',
     activeTitle: 'Semaine de décharge en cours',
     activeDescription:
       'Jusqu’au {date}, les charges suggérées sont environ 10 % plus légères. La progression normale reprend automatiquement ensuite.',

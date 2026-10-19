@@ -12,6 +12,7 @@ import {
   MIN_LOAD_ADJUSTMENT_PCT,
 } from '@/lib/intra-set-autoregulation';
 import { MAX_SUPERSET_GROUP, MIN_SUPERSET_GROUP } from '@/lib/supersets';
+import { programScheduleFields, refineProgramSchedule } from '@/lib/schemas/program';
 
 // ============================================================
 // Structured output for AI-generated programs (LOT: program generation)
@@ -53,12 +54,17 @@ export const generatedWorkoutSchema = z.object({
   exercises: z.array(generatedExerciseSchema).min(1).max(15),
 });
 
-export const generatedProgramSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  description: z.string().trim().max(1000).nullish(),
-  phase: z.string().trim().min(1).max(60),
-  workouts: z.array(generatedWorkoutSchema).min(1).max(7),
-});
+export const generatedProgramSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    description: z.string().trim().max(1000).nullish(),
+    phase: z.string().trim().min(1).max(60),
+    // Optional block schedule (lib/program-weeks.ts); templates set it, the
+    // AI generator may leave it out.
+    ...programScheduleFields,
+    workouts: z.array(generatedWorkoutSchema).min(1).max(7),
+  })
+  .superRefine(refineProgramSchedule);
 
 export type GeneratedExercise = z.infer<typeof generatedExerciseSchema>;
 export type GeneratedWorkout = z.infer<typeof generatedWorkoutSchema>;

@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { getLlmProvider, LlmError } from '@/lib/llm';
 import { PROGRAM_GEN_SYSTEM_PROMPT } from '@/lib/prompts/program-system-prompt';
 import { parseGeneratedProgram, type GeneratedProgram } from '@/lib/schemas/program-generation';
+import { normalizeDeloadWeeks } from '@/lib/schemas/program';
 import { defaultIntraSetConfig } from '@/lib/intra-set-autoregulation';
 
 // Generates a structured program draft from a natural-language goal. Does not
@@ -73,6 +74,9 @@ export async function buildProgramFromGenerated(
           name: program.name,
           description: program.description ?? null,
           phase: program.phase,
+          durationWeeks: program.durationWeeks ?? null,
+          deloadWeeks: normalizeDeloadWeeks(program.deloadWeeks) ?? [],
+          sessionBudgetMin: program.sessionBudgetMin ?? null,
           isActive: false,
         },
       });
