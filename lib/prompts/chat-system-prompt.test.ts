@@ -45,7 +45,11 @@ describe('chat system prompt', () => {
     // prompt must not invite proposals it will silently skip.
     expect(CHAT_SYSTEM_PROMPT).toMatch(/ALREADY in the active program/i);
     expect(CHAT_SYSTEM_PROMPT).toMatch(/exerciseName EXACTLY/i);
-    expect(CHAT_SYSTEM_PROMPT).toMatch(/[Nn]ever propose adding, removing or swapping/);
+    // Structural changes are bounded: one workout, at most 3, no restructure.
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/"action": "add" \(with "workoutName" exactly/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/At most 3 structural changes per reply/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/never restructure the whole program here/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/they can undo it afterwards/);
     // Mid-workout advice is about the next set, not a permanent edit.
     expect(CHAT_SYSTEM_PROMPT).toMatch(/Do NOT include the block when a currentSession/i);
     // The trainee confirms; the coach must not claim it already happened.
@@ -77,5 +81,13 @@ describe('chat system prompt', () => {
     expect(CHAT_SYSTEM_PROMPT).toMatch(/Do NOT include the block when a currentSession/i);
     // Creating it is the trainee's tap.
     expect(CHAT_SYSTEM_PROMPT).toMatch(/Do not claim you have created anything/i);
+  });
+});
+
+describe('chat system prompt - recomp block', () => {
+  it('explains the recomp section as hypotheses and forbids invented body metrics', () => {
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/recomp section/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/hypotheses to check, never as facts/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/NEVER state or invent a body fat percentage/);
   });
 });

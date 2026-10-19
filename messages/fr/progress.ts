@@ -90,6 +90,15 @@ export const progress = {
     description:
       'Minutes de cardio hebdomadaires par rapport au repère de {target} min/semaine. Distance et séances apparaissent dans l’infobulle.',
   },
+  weeklySets: {
+    title: 'Séries difficiles par muscle et par semaine',
+    description: 'Plan du programme et séries réalisées face à la fourchette de chaque muscle (MEV-MRV). Par défaut {mev}-{mrv} séries/semaine.',
+    band: 'Fourchette {mev}-{mrv}',
+    planned: 'Plan {sets}',
+    thisWeek: 'Cette semaine {sets}',
+    lastWeek: 'Semaine dernière {sets}',
+    note: 'Séries de travail uniquement (sans échauffement ni cardio), comptées une fois pour le muscle principal. Les muscles secondaires ne sont pas comptés.',
+  },
   recomp: {
     title: 'Bilan recomposition',
     description: 'La force tient-elle pendant la sèche, à côté de la tendance du poids et du tour de taille.',

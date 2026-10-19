@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Loader2, SlidersHorizontal } from 'lucide-react';
+import { Check, Loader2, SlidersHorizontal, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -42,7 +42,9 @@ export function CoachAdjustments({
   const exerciseName = useExerciseName();
   const [rows, setRows] = useState<Row[]>(() =>
     initialAdjustments.map((a) => {
-      const def = programDefaults[a.exerciseName];
+      // Only an update starts from the current prescription; an add carries
+      // its own and remove/move have none.
+      const def = (a.action ?? 'update') === 'update' ? programDefaults[a.exerciseName] : undefined;
       return {
         selected: !alreadyApplied,
         data: {
@@ -59,6 +61,9 @@ export function CoachAdjustments({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  // Change-log batch of the last apply, offered for undo until used.
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [undoing, setUndoing] = useState(false);
 
   if (initialAdjustments.length === 0) return null;
 
@@ -93,7 +98,9 @@ export function CoachAdjustments({
         appliedAt: string;
         applied: { exerciseName: string }[];
         skipped: { exerciseName: string; reason: string }[];
+        batchId?: string | null;
       };
+      setBatchId(j.batchId ?? null);
       const skippedMsg =
         j.skipped.length > 0
           ? t('skippedSuffix', {
@@ -107,6 +114,27 @@ export function CoachAdjustments({
       setError(e instanceof Error ? e.message : t('unknownError'));
     } finally {
       setPending(false);
+    }
+  }
+
+  async function undoLast() {
+    if (!batchId) return;
+    setUndoing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/program-changes/${encodeURIComponent(batchId)}/undo`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? t('undoError'));
+      }
+      setBatchId(null);
+      setFeedback(t('undone'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('undoError'));
+    } finally {
+      setUndoing(false);
     }
   }
 
@@ -135,7 +163,24 @@ export function CoachAdjustments({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">{exerciseName(row.data.exerciseName)}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="font-medium">{exerciseName(row.data.exerciseName)}</p>
+                    {(row.data.action ?? 'update') !== 'update' && (
+                      <Badge variant={row.data.action === 'remove' ? 'destructive' : 'default'}>
+                        {t(`actions.${row.data.action ?? 'update'}`)}
+                      </Badge>
+                    )}
+                  </div>
+                  {row.data.workoutName && (
+                    <p className="text-xs text-muted-foreground">
+                      {row.data.position != null
+                        ? t('inWorkoutAt', {
+                            workout: row.data.workoutName,
+                            position: row.data.position,
+                          })
+                        : t('inWorkout', { workout: row.data.workoutName })}
+                    </p>
+                  )}
                   <p className="text-sm">{row.data.summary}</p>
                   {row.data.rationale && (
                     <p className="mt-1 text-xs text-muted-foreground">{row.data.rationale}</p>
@@ -149,49 +194,53 @@ export function CoachAdjustments({
                 />
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <NumberField
-                  label={t('repsMin')}
-                  value={row.data.suggestedRepsMin ?? null}
-                  onChange={(v) => patchRow(i, { suggestedRepsMin: v })}
-                  disabled={!row.selected || pending}
-                />
-                <NumberField
-                  label={t('repsMax')}
-                  value={row.data.suggestedRepsMax ?? null}
-                  onChange={(v) => patchRow(i, { suggestedRepsMax: v })}
-                  disabled={!row.selected || pending}
-                />
-                <NumberField
-                  label={t('sets')}
-                  value={row.data.suggestedSets ?? null}
-                  onChange={(v) => patchRow(i, { suggestedSets: v })}
-                  disabled={!row.selected || pending}
-                />
-                <NumberField
-                  label="RIR"
-                  value={row.data.suggestedRIR ?? null}
-                  onChange={(v) => patchRow(i, { suggestedRIR: v })}
-                  disabled={!row.selected || pending}
-                />
-                <NumberField
-                  label={t('rest')}
-                  value={row.data.suggestedRestSec ?? null}
-                  onChange={(v) => patchRow(i, { suggestedRestSec: v })}
-                  disabled={!row.selected || pending}
-                />
-                {row.data.suggestedLoad != null && (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {t('targetLoad')}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {row.data.suggestedLoad} kg
-                      {row.data.currentLoad != null && t('versus', { value: row.data.currentLoad })}
-                    </span>
+              {(row.data.action ?? 'update') !== 'remove' &&
+                (row.data.action ?? 'update') !== 'move' && (
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <NumberField
+                      label={t('repsMin')}
+                      value={row.data.suggestedRepsMin ?? null}
+                      onChange={(v) => patchRow(i, { suggestedRepsMin: v })}
+                      disabled={!row.selected || pending}
+                    />
+                    <NumberField
+                      label={t('repsMax')}
+                      value={row.data.suggestedRepsMax ?? null}
+                      onChange={(v) => patchRow(i, { suggestedRepsMax: v })}
+                      disabled={!row.selected || pending}
+                    />
+                    <NumberField
+                      label={t('sets')}
+                      value={row.data.suggestedSets ?? null}
+                      onChange={(v) => patchRow(i, { suggestedSets: v })}
+                      disabled={!row.selected || pending}
+                    />
+                    <NumberField
+                      label="RIR"
+                      value={row.data.suggestedRIR ?? null}
+                      onChange={(v) => patchRow(i, { suggestedRIR: v })}
+                      disabled={!row.selected || pending}
+                    />
+                    <NumberField
+                      label={t('rest')}
+                      value={row.data.suggestedRestSec ?? null}
+                      onChange={(v) => patchRow(i, { suggestedRestSec: v })}
+                      disabled={!row.selected || pending}
+                    />
+                    {row.data.suggestedLoad != null && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                          {t('targetLoad')}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {row.data.suggestedLoad} kg
+                          {row.data.currentLoad != null &&
+                            t('versus', { value: row.data.currentLoad })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
             </li>
           ))}
         </ul>
@@ -199,6 +248,18 @@ export function CoachAdjustments({
         <div className="flex flex-col gap-2 border-t border-border/40 pt-3">
           {error && <p className="text-sm text-rose-600">{error}</p>}
           {feedback && <p className="text-sm text-emerald-600">{feedback}</p>}
+          {batchId && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={undoLast}
+              disabled={undoing}
+              className="min-h-tap"
+            >
+              {undoing ? <Loader2 className="size-5 animate-spin" /> : <Undo2 className="size-5" />}
+              <span className="ml-2">{t('undo')}</span>
+            </Button>
+          )}
           <Button
             type="button"
             onClick={applyAll}

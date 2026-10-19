@@ -21,6 +21,16 @@ export const programs = {
   aiProgram: 'AIプログラム',
   programName: 'プログラム名',
   programNamePlaceholder: '例: 筋肥大 2026 - フェーズ1',
+  changes: {
+    title: 'コーチによる変更履歴',
+    description: '承認したAIの変更です。最新の変更は元に戻せます。',
+    sourceChat: 'チャット',
+    sourceDebrief: '週間レビュー',
+    undo: '元に戻す',
+    undone: '変更を元に戻しました。',
+    undoneBadge: '取り消し済み',
+    undoError: '元に戻せませんでした。',
+  },
   schedule: {
     title: 'ブロック期間 (任意)',
     startDate: '開始日',
@@ -73,6 +83,8 @@ export const programs = {
   templateAttributionHint: '原典どおりに実行し、コーチはその範囲内で助言します。',
   showAllTemplates: 'テンプレートをすべて表示 ({count})',
   workout: {
+    minutes: '約{minutes}分',
+    minutesOverBudget: '約{minutes}分 (上限 {budget}分超過)',
     actions: 'セッションアクション',
     edit: 'セッションを編集',
     create: '新しいセッション',

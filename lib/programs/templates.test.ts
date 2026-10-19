@@ -113,7 +113,10 @@ describe('12-week body recomp template', () => {
 
   it('keeps every lifting day inside the 75 minute session budget', () => {
     for (const w of template!.program.workouts) {
-      expect(estimateWorkoutMinutes(w.exercises), w.name).toBeLessThanOrEqual(75);
+      // Detailed estimate: counts warm-up ramps and moving between stations.
+      expect(estimateWorkoutMinutes(w.exercises, { detailed: true }), w.name).toBeLessThanOrEqual(
+        75,
+      );
     }
   });
 

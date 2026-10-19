@@ -21,6 +21,7 @@ function emptyPayload(): CoachPayload {
     weekCurrent: { weekStart: '2026-06-08T00:00:00.000Z', sessions: [] },
     weekPrevious: null,
     activeProgram: null,
+    recomp: null,
     latestReadiness: null,
     goals: [],
     fatigue: {

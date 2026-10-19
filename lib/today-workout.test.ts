@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  estimateWorkoutMinutes,
-  pickTodayWorkout,
-  type WorkoutCandidate,
-} from './today-workout';
+import { estimateWorkoutMinutes, pickTodayWorkout, type WorkoutCandidate } from './today-workout';
 
 // Upper / Lower split, the shape this app is used with: two workouts pinned to
 // Monday and Thursday, one floating.
@@ -98,5 +94,47 @@ describe('estimateWorkoutMinutes', () => {
 
   it('falls back to the setup cost for an empty workout', () => {
     expect(estimateWorkoutMinutes([])).toBe(5);
+  });
+});
+
+describe('estimateWorkoutMinutes - detailed', () => {
+  const heavy = {
+    targetSets: 4,
+    targetRepsMin: 4,
+    targetRepsMax: 6,
+    restSec: 180,
+    category: 'COMPOUND',
+  };
+  const light = {
+    targetSets: 3,
+    targetRepsMin: 12,
+    targetRepsMax: 15,
+    restSec: 60,
+    category: 'ISOLATION',
+  };
+
+  it('is unchanged when the option is off', () => {
+    expect(estimateWorkoutMinutes([heavy, light])).toBe(
+      estimateWorkoutMinutes([
+        { targetSets: 4, targetRepsMin: 4, targetRepsMax: 6, restSec: 180 },
+        { targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, restSec: 60 },
+      ]),
+    );
+  });
+
+  it('adds a minute per exercise and a warm-up ramp for heavy compounds only', () => {
+    // heavy: 4 x (5 x 3.5 + 180) = 790 s, + 60 transition + 3 x (17.5 + 60) = 232.5
+    // light: 3 x (13.5 x 3.5 + 60) = 321.75 s, + 60 transition
+    // total 1464.25 s = 24.4 min + 5 setup = 29.4 -> 30
+    expect(estimateWorkoutMinutes([heavy, light], { detailed: true })).toBe(30);
+    expect(estimateWorkoutMinutes([heavy, light])).toBe(25);
+  });
+
+  it('gives no warm-up to a compound trained in a high rep range', () => {
+    const highRepCompound = { ...heavy, targetRepsMin: 10, targetRepsMax: 12 };
+    const withoutRamp = estimateWorkoutMinutes([{ ...highRepCompound, category: 'ISOLATION' }], {
+      detailed: true,
+    });
+    expect(estimateWorkoutMinutes([highRepCompound], { detailed: true })).toBe(withoutRamp);
   });
 });

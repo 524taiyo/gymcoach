@@ -33,6 +33,8 @@ const COVERED_ELSEWHERE: Record<string, string> = {
   'app/api/progress-photos/[id]/route.ts': 'tests/integration/progress-photos-route.test.ts',
   'app/api/progress-photos/[id]/image/route.ts': 'tests/integration/progress-photos-route.test.ts',
   'app/api/goals/route.ts': 'tests/integration/goals-route.test.ts',
+  'app/api/program-changes/[batchId]/undo/route.ts':
+    'tests/integration/program-changes-route.test.ts',
 };
 
 // Routes that take a resource id in the request body AND are not already

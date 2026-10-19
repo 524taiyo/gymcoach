@@ -90,6 +90,17 @@ export const coach = {
     error: 'Impossible d’enregistrer la note.',
   },
   adjustments: {
+    actions: {
+      update: 'Modifier',
+      add: 'Ajouter',
+      remove: 'Retirer',
+      move: 'Déplacer',
+    },
+    inWorkout: '{workout}',
+    inWorkoutAt: '{workout}, position {position}',
+    undo: 'Annuler ces changements',
+    undone: 'Changements annulés.',
+    undoError: 'Impossible d’annuler les changements.',
     title: 'Ajustements proposés',
     applied: 'Déjà appliqué',
     description:

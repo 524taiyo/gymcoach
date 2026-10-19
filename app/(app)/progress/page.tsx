@@ -8,7 +8,11 @@ import {
   best1RM,
   exerciseProgress,
   isStalled,
+  isoWeekKey,
   trainingConsistency,
+  weeklySetsByMuscleGroup,
+  WEEKLY_SETS_MEV,
+  WEEKLY_SETS_MRV,
 } from '@/lib/stats';
 import {
   DELOAD_READINESS_LOOKBACK,
@@ -27,6 +31,10 @@ import {
   waistChange,
 } from '@/lib/recomp';
 import { RecompCard } from '@/components/progress/recomp-card';
+import { WeeklySetsCard } from '@/components/progress/weekly-sets-card';
+import { MuscleMapCard } from '@/components/progress/muscle-map-card';
+import { plannedWeeklySets, weeklySetsRows } from '@/lib/weekly-sets';
+import { buildMuscleMap } from '@/lib/muscle-map';
 import { MeasurementsCard } from '@/components/progress/measurements-card';
 import { PhotosCard } from '@/components/progress/photos-card';
 import { DeloadBanner } from '@/components/progress/deload-banner';
@@ -70,6 +78,7 @@ export default async function ProgressPage(
     bodyweightEntries,
     bodyMeasurements,
     progressPhotos,
+    volumeTargetRows,
   ] = await Promise.all([
     // All exercises with at least one non-warmup set in the period.
     db.exercise.findMany({
@@ -97,17 +106,24 @@ export default async function ProgressPage(
         startDate: true,
         durationWeeks: true,
         deloadWeeks: true,
-        // Heavy compounds of the program = strength anchors for the recomp card.
+        // Planned weekly sets per muscle, and the heavy compounds that anchor
+        // the recomp card's strength check.
         workouts: {
           select: {
             exercises: {
-              where: {
-                targetRepsMax: { lte: ANCHOR_MAX_REPS },
-                exercise: { category: 'COMPOUND' },
-              },
               orderBy: { order: 'asc' },
               select: {
-                exercise: { select: { id: true, name: true, usesBodyweight: true } },
+                targetSets: true,
+                targetRepsMax: true,
+                exercise: {
+                  select: {
+                    id: true,
+                    name: true,
+                    usesBodyweight: true,
+                    muscleGroup: true,
+                    category: true,
+                  },
+                },
               },
             },
           },
@@ -169,6 +185,11 @@ export default async function ProgressPage(
       where: { userId: auth.userId },
       orderBy: { takenAt: 'desc' },
       select: { id: true, takenAt: true, note: true },
+    }),
+    // Personal MEV/MRV bands (issue #211) for the weekly sets card.
+    db.volumeTarget.findMany({
+      where: { userId: auth.userId },
+      select: { muscleGroup: true, mev: true, mrv: true },
     }),
   ]);
   const bodyweight = user?.bodyweight ?? null;
@@ -301,7 +322,11 @@ export default async function ProgressPage(
   // scheduled deload week are lowered on purpose, so they are left out.
   const anchorExercises = new Map<string, { name: string; usesBodyweight: boolean }>();
   for (const w of activeSchedule?.workouts ?? []) {
-    for (const pe of w.exercises) anchorExercises.set(pe.exercise.id, pe.exercise);
+    for (const pe of w.exercises) {
+      if (pe.exercise.category === 'COMPOUND' && pe.targetRepsMax <= ANCHOR_MAX_REPS) {
+        anchorExercises.set(pe.exercise.id, pe.exercise);
+      }
+    }
   }
   const blockStart = activeSchedule?.durationWeeks != null ? activeSchedule.startDate : null;
   const anchors = [...anchorExercises].map(([id, exo]) =>
@@ -337,6 +362,48 @@ export default async function ProgressPage(
     blockStart ?? since,
   );
   const signals = recompSignals({ anchors, bodyweight: bodyweightTrendValue, waist });
+
+  // Weekly hard sets per muscle (lib/weekly-sets.ts): program plan vs this
+  // week and last week, against personal or default MEV/MRV bands.
+  const volumeTargets = Object.fromEntries(
+    volumeTargetRows.map((v) => [v.muscleGroup, { mev: v.mev, mrv: v.mrv }]),
+  );
+  const muscleById = new Map(exercisesWithSets.map((e) => [e.id, e.muscleGroup]));
+  const weeklySetsPoints = weeklySetsByMuscleGroup(
+    windowSets.flatMap((s) => {
+      const muscleGroup = muscleById.get(s.exerciseId);
+      return muscleGroup
+        ? [
+            {
+              isWarmup: s.isWarmup,
+              durationSec: s.durationSec,
+              muscleGroup,
+              sessionStartedAt: s.session.startedAt,
+            },
+          ]
+        : [];
+    }),
+  );
+  const thisWeekKey = isoWeekKey(now);
+  const lastWeekKey = isoWeekKey(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const lastWeekSets =
+    weeklySetsPoints.find((w) => w.weekKey === lastWeekKey)?.byMuscleGroup ?? {};
+  const weeklyRows = weeklySetsRows({
+    planned: plannedWeeklySets(
+      (activeSchedule?.workouts ?? []).map((w) => ({
+        exercises: w.exercises.map((pe) => ({
+          muscleGroup: pe.exercise.muscleGroup,
+          category: pe.exercise.category,
+          targetSets: pe.targetSets,
+        })),
+      })),
+    ),
+    thisWeek: weeklySetsPoints.find((w) => w.weekKey === thisWeekKey)?.byMuscleGroup ?? {},
+    lastWeek: lastWeekSets,
+    targets: volumeTargets,
+  });
+  const muscleMap = buildMuscleMap(lastWeekSets, volumeTargets);
+  const lastWeekNumber = Number(lastWeekKey.split('-W')[1]);
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -404,6 +471,17 @@ export default async function ProgressPage(
                 deloadUntil={deloadUntilIso}
                 scheduledWeek={blockWeek?.isDeloadWeek ? blockWeek.week : null}
                 canEnd={manualDeloadActive}
+              />
+            )}
+            <WeeklySetsCard
+              rows={weeklyRows}
+              defaultMev={WEEKLY_SETS_MEV}
+              defaultMrv={WEEKLY_SETS_MRV}
+            />
+            {Object.keys(lastWeekSets).length > 0 && (
+              <MuscleMapCard
+                regions={muscleMap}
+                weekLabel={t('dashboard.weekLabel', { week: lastWeekNumber })}
               />
             )}
             <ConsistencyCard

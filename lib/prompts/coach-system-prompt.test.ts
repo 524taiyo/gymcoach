@@ -17,10 +17,13 @@ describe('coach system prompt positioning', () => {
     expect(COACH_SYSTEM_PROMPT).toMatch(/fill the "rationale"/i);
   });
 
-  it('forbids adding, removing or swapping exercises in an adjustment', () => {
-    expect(COACH_SYSTEM_PROMPT).toMatch(
-      /Never propose adding, removing or swapping an exercise/i,
-    );
+  it('bounds structural changes: one workout, at most 3, never a restructure', () => {
+    expect(COACH_SYSTEM_PROMPT).toMatch(/"action" \("update" by\s+default, or "add", "remove", "move"\)/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/workoutName required, full prescription\s+required/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/At\s+most 3 structural changes per reply/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/never restructure the whole program/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/ALREADY in\s+the active program/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/user\s+can undo them/);
   });
 
   it('states adjustments are user-accepted, never auto-applied', () => {
@@ -71,9 +74,7 @@ describe('coach system prompt positioning', () => {
     expect(COACH_SYSTEM_PROMPT).toMatch(/"records": the user's all-time bests/i);
     expect(COACH_SYSTEM_PROMPT).toMatch(/acknowledge the personal record/i);
     expect(COACH_SYSTEM_PROMPT).toMatch(/NEVER invent\s+a record/i);
-    expect(COACH_SYSTEM_PROMPT).toMatch(
-      /records never go in the <adjustments> block/i,
-    );
+    expect(COACH_SYSTEM_PROMPT).toMatch(/records never go in the <adjustments> block/i);
   });
 
   // Issue #145: conditioning is an INPUT-side signal; the output contract
@@ -81,9 +82,7 @@ describe('coach system prompt positioning', () => {
   it('tells the coach to factor conditioning into recovery, without medical advice', () => {
     expect(COACH_SYSTEM_PROMPT).toMatch(/conditioning\.weekCurrent/);
     expect(COACH_SYSTEM_PROMPT).toMatch(/conditioning\.weeklyTargetMin/);
-    expect(COACH_SYSTEM_PROMPT).toMatch(
-      /high-cardio week compounds the fatigue from lifting/i,
-    );
+    expect(COACH_SYSTEM_PROMPT).toMatch(/high-cardio week compounds the fatigue from lifting/i);
     expect(COACH_SYSTEM_PROMPT).toMatch(/never give\s+medical advice/i);
     expect(COACH_SYSTEM_PROMPT).toMatch(
       /do not propose program\s+adjustments to chase the cardio target/i,
@@ -95,13 +94,9 @@ describe('coach system prompt positioning', () => {
   it('tells the coach to manage cardio/strength interference from the daily breakdown', () => {
     expect(COACH_SYSTEM_PROMPT).toMatch(/conditioning\.days/);
     expect(COACH_SYSTEM_PROMPT).toMatch(/days without cardio are omitted/i);
-    expect(COACH_SYSTEM_PROMPT).toMatch(
-      /separate hard runs from heavy\s+lower-body days/i,
-    );
+    expect(COACH_SYSTEM_PROMPT).toMatch(/separate hard runs from heavy\s+lower-body days/i);
     expect(COACH_SYSTEM_PROMPT).toMatch(/explain WHY the timing matters/);
-    expect(COACH_SYSTEM_PROMPT).toMatch(
-      /cardio scheduling never goes in the <adjustments> block/i,
-    );
+    expect(COACH_SYSTEM_PROMPT).toMatch(/cardio scheduling never goes in the <adjustments> block/i);
   });
 });
 
@@ -109,5 +104,20 @@ describe('program generation prompt positioning', () => {
   it('frames the program as a user-controlled, editable draft', () => {
     expect(PROGRAM_GEN_SYSTEM_PROMPT).toMatch(/draft/i);
     expect(PROGRAM_GEN_SYSTEM_PROMPT).toMatch(/Honor any structure.*the user states/i);
+  });
+});
+
+describe('coach system prompt - recomp block', () => {
+  it('describes the recomp signals as hypotheses and forbids invented body metrics', () => {
+    expect(COACH_SYSTEM_PROMPT).toMatch(/recomp\.strengthRetention/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/recomp\.signals/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/recomp\.weeklySets/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/hypotheses to check, never as facts/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/NEVER state or invent a body fat percentage/);
+  });
+
+  it('frames advice in the planned block week', () => {
+    expect(COACH_SYSTEM_PROMPT).toMatch(/activeProgram\.block/);
+    expect(COACH_SYSTEM_PROMPT).toMatch(/scheduled deload week/);
   });
 });
