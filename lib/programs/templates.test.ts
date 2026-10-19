@@ -4,6 +4,8 @@ import {
   getTemplateBySlug,
 } from './templates';
 import { generatedProgramSchema } from '@/lib/schemas/program-generation';
+import { estimateWorkoutMinutes } from '@/lib/today-workout';
+import { getExerciseDisplayName } from '@/i18n/exercise-names';
 
 describe('program templates', () => {
   it('ships at least the four required established programs', () => {
@@ -88,5 +90,56 @@ describe('program templates', () => {
   it('looks up a template by slug and returns undefined for an unknown slug', () => {
     expect(getTemplateBySlug('ppl-6day')?.name).toBe('Push / Pull / Legs (6-day)');
     expect(getTemplateBySlug('does-not-exist')).toBeUndefined();
+  });
+});
+
+describe('12-week body recomp template', () => {
+  const template = getTemplateBySlug('recomp-5day-12week');
+
+  it('ships first in the catalog so the picker shows it without expanding', () => {
+    expect(template).toBeDefined();
+    expect(programTemplates[0]?.slug).toBe('recomp-5day-12week');
+  });
+
+  it('pins one workout to each of Monday through Saturday and leaves Sunday off', () => {
+    const days = template!.program.workouts.map((w) => w.dayOfWeek);
+    expect(days).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('makes Thursday a conditioning-only day', () => {
+    const thursday = template!.program.workouts.find((w) => w.dayOfWeek === 4)!;
+    expect(thursday.exercises.every((e) => e.category === 'CARDIO')).toBe(true);
+  });
+
+  it('keeps every lifting day inside the 75 minute session budget', () => {
+    for (const w of template!.program.workouts) {
+      expect(estimateWorkoutMinutes(w.exercises), w.name).toBeLessThanOrEqual(75);
+    }
+  });
+
+  it('prescribes a target RIR of 1-2 on every lifting exercise', () => {
+    for (const w of template!.program.workouts) {
+      for (const e of w.exercises.filter((x) => x.category !== 'CARDIO')) {
+        expect(e.targetRIR, e.name).toBeGreaterThanOrEqual(1);
+        expect(e.targetRIR, e.name).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
+  it('keeps heavy low-rep anchors for bench, squat and deadlift', () => {
+    const all = template!.program.workouts.flatMap((w) => w.exercises);
+    for (const name of ['Bench Press', 'Back Squat', 'Deadlift']) {
+      const ex = all.find((e) => e.name === name);
+      expect(ex, name).toBeDefined();
+      expect(ex!.targetRepsMax, name).toBeLessThanOrEqual(6);
+    }
+  });
+
+  it('uses exercise names that have a Japanese display name', () => {
+    for (const w of template!.program.workouts) {
+      for (const e of w.exercises) {
+        expect(getExerciseDisplayName(e.name, 'ja'), e.name).not.toBe(e.name);
+      }
+    }
   });
 });

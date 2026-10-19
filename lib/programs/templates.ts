@@ -30,6 +30,98 @@ export interface ProgramTemplate {
   program: GeneratedProgram;
 }
 
+// 12-week body recomposition, 5 lifting days + 1 conditioning day. Built for
+// an advanced lifter in a calorie deficit: heavy low-rep work keeps the
+// strength signal (the main reason muscle is retained while cutting), and
+// moderate-volume hypertrophy work biases shoulders, chest and lats. Each
+// lifting day fits a 60-75 min session. Weeks 4 and 8 are planned deloads,
+// run through the existing one-tap deload (loads -10%) plus one fewer set.
+const RECOMP_12_WEEK: ProgramTemplate = {
+  slug: 'recomp-5day-12week',
+  name: 'Body Recomp 12-week (5-day)',
+  summary:
+    'Keep strength while cutting: heavy press, lat-focused back, strength legs, conditioning, hypertrophy upper. 60-75 min.',
+  attribution:
+    'Run for 12 weeks. Weeks 4 and 8 are deloads: start the deload week from the Progress page (loads -10%) and do one fewer set per exercise. Keep 1-3 reps in reserve as prescribed; add load only when every working set reaches the top of the rep range at the target RIR. Sunday is full rest.',
+  program: {
+    name: 'Body Recomp 12-week',
+    description:
+      'Twelve-week recomposition block: maintain strength and muscle while losing fat. Heavy pressing, squatting and pulling preserve strength; higher-rep upper work biases shoulders, chest and lats. Deload in weeks 4 and 8. Sunday off.',
+    phase: 'Recomp',
+    workouts: [
+      {
+        name: 'Mon - Chest, Shoulders, Triceps (heavy press)',
+        dayOfWeek: 1,
+        exercises: [
+          { name: 'Bench Press', muscleGroup: 'CHEST', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 4, targetRepsMin: 4, targetRepsMax: 6, targetRIR: 2, restSec: 180, notes: 'Strength anchor for the cut. Keep the load, let reps fall before cutting weight.' },
+          { name: 'Incline Dumbbell Press', muscleGroup: 'CHEST', category: 'COMPOUND', equipmentType: 'DUMBBELL', targetSets: 3, targetRepsMin: 6, targetRepsMax: 10, targetRIR: 2, restSec: 150 },
+          { name: 'Overhead Press', muscleGroup: 'SHOULDERS_FRONT', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 6, targetRepsMax: 8, targetRIR: 2, restSec: 150 },
+          { name: 'Lateral Raise', muscleGroup: 'SHOULDERS_LATERAL', category: 'ISOLATION', equipmentType: 'DUMBBELL', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Triceps Pushdown', muscleGroup: 'TRICEPS', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60 },
+          { name: 'Overhead Triceps Extension', muscleGroup: 'TRICEPS', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 2, targetRepsMin: 10, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+        ],
+      },
+      {
+        name: 'Tue - Back, Biceps (lat focus)',
+        dayOfWeek: 2,
+        exercises: [
+          { name: 'Pull-up', muscleGroup: 'BACK_WIDTH', category: 'COMPOUND', equipmentType: 'BODYWEIGHT', targetSets: 4, targetRepsMin: 6, targetRepsMax: 10, targetRIR: 2, restSec: 150, notes: 'Use assistance or a band if needed to stay in the rep range.' },
+          { name: 'Lat Pulldown', muscleGroup: 'BACK_WIDTH', category: 'COMPOUND', equipmentType: 'CABLE', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 1, restSec: 120 },
+          { name: 'Barbell Row', muscleGroup: 'BACK_THICKNESS', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 6, targetRepsMax: 10, targetRIR: 2, restSec: 150 },
+          { name: 'Straight-arm cable pulldown', muscleGroup: 'BACK_WIDTH', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 2, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Face Pull', muscleGroup: 'SHOULDERS_REAR', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Barbell Curl', muscleGroup: 'BICEPS', category: 'ISOLATION', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 1, restSec: 60 },
+          { name: 'Hammer Curl', muscleGroup: 'BICEPS', category: 'ISOLATION', equipmentType: 'DUMBBELL', targetSets: 2, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60 },
+        ],
+      },
+      {
+        name: 'Wed - Legs, Core (strength)',
+        dayOfWeek: 3,
+        exercises: [
+          { name: 'Back Squat', muscleGroup: 'QUADS', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 4, targetRepsMin: 3, targetRepsMax: 5, targetRIR: 2, restSec: 240, notes: 'Strength anchor for the cut. Hold the load; do not chase PRs in a deficit.' },
+          { name: 'Romanian Deadlift', muscleGroup: 'HAMSTRINGS', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 6, targetRepsMax: 8, targetRIR: 2, restSec: 180 },
+          { name: 'Leg Press', muscleGroup: 'QUADS', category: 'COMPOUND', equipmentType: 'MACHINE', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 2, restSec: 150 },
+          { name: 'Leg Curl', muscleGroup: 'HAMSTRINGS', category: 'ISOLATION', equipmentType: 'MACHINE', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 90 },
+          { name: 'Standing Calf Raise', muscleGroup: 'CALVES', category: 'ISOLATION', equipmentType: 'MACHINE', targetSets: 3, targetRepsMin: 10, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Hanging Leg Raise', muscleGroup: 'ABS', category: 'ISOLATION', equipmentType: 'BODYWEIGHT', targetSets: 3, targetRepsMin: 10, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+        ],
+      },
+      {
+        name: 'Thu - Conditioning, Mobility',
+        dayOfWeek: 4,
+        exercises: [
+          { name: 'Cycling', muscleGroup: 'OTHER', category: 'CARDIO', equipmentType: 'CARDIO', targetSets: 1, targetRepsMin: 1, targetRepsMax: 1, targetRIR: 0, restSec: 60, notes: '30-45 min easy steady state (you can hold a conversation), then 10-15 min hip, thoracic and shoulder mobility.' },
+        ],
+      },
+      {
+        name: 'Fri - Chest, Shoulders (hypertrophy)',
+        dayOfWeek: 5,
+        exercises: [
+          { name: 'Incline Bench Press', muscleGroup: 'CHEST', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 4, targetRepsMin: 6, targetRepsMax: 10, targetRIR: 2, restSec: 150 },
+          { name: 'Flat dumbbell bench press', muscleGroup: 'CHEST', category: 'COMPOUND', equipmentType: 'DUMBBELL', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 1, restSec: 120 },
+          { name: 'Cable Fly', muscleGroup: 'CHEST', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 3, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Seated dumbbell overhead press', muscleGroup: 'SHOULDERS_FRONT', category: 'COMPOUND', equipmentType: 'DUMBBELL', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 2, restSec: 120 },
+          { name: 'Cable lateral raises', muscleGroup: 'SHOULDERS_LATERAL', category: 'ISOLATION', equipmentType: 'CABLE', targetSets: 4, targetRepsMin: 12, targetRepsMax: 20, targetRIR: 1, restSec: 60 },
+          { name: 'Rear Delt Fly', muscleGroup: 'SHOULDERS_REAR', category: 'ISOLATION', equipmentType: 'MACHINE', targetSets: 3, targetRepsMin: 12, targetRepsMax: 20, targetRIR: 1, restSec: 60 },
+        ],
+      },
+      {
+        name: 'Sat - Back, Arms, Leg accessories',
+        dayOfWeek: 6,
+        exercises: [
+          { name: 'Deadlift', muscleGroup: 'BACK_THICKNESS', category: 'COMPOUND', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 3, targetRepsMax: 5, targetRIR: 2, restSec: 240, notes: 'Strength anchor for the cut. Stop each set with 2 clean reps left.' },
+          { name: 'Chest-supported machine row', muscleGroup: 'BACK_THICKNESS', category: 'COMPOUND', equipmentType: 'MACHINE', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 1, restSec: 120 },
+          { name: 'Neutral-grip lat pulldown', muscleGroup: 'BACK_WIDTH', category: 'COMPOUND', equipmentType: 'CABLE', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 90 },
+          { name: 'Incline dumbbell curl (bench 60 deg)', muscleGroup: 'BICEPS', category: 'ISOLATION', equipmentType: 'DUMBBELL', targetSets: 3, targetRepsMin: 10, targetRepsMax: 12, targetRIR: 1, restSec: 60 },
+          { name: 'Skullcrusher', muscleGroup: 'TRICEPS', category: 'ISOLATION', equipmentType: 'BARBELL', targetSets: 3, targetRepsMin: 8, targetRepsMax: 12, targetRIR: 1, restSec: 90 },
+          { name: 'Leg Extension', muscleGroup: 'QUADS', category: 'ISOLATION', equipmentType: 'MACHINE', targetSets: 2, targetRepsMin: 12, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+          { name: 'Seated leg curl', muscleGroup: 'HAMSTRINGS', category: 'ISOLATION', equipmentType: 'MACHINE', targetSets: 2, targetRepsMin: 10, targetRepsMax: 15, targetRIR: 1, restSec: 60 },
+        ],
+      },
+    ],
+  },
+};
+
 // 5/3/1 - basic 4-day (Wendler). Main lift per day at a working top set, plus
 // Boring But Big style accessories. RIR/rep targets approximate the as-written
 // intent; notes carry the percentage scheme.
@@ -846,6 +938,7 @@ const FULL_BODY_3X: ProgramTemplate = {
 // malformed template fails fast in tests and the build, never at runtime for a
 // user.
 const RAW_TEMPLATES: ProgramTemplate[] = [
+  RECOMP_12_WEEK,
   FIVE_THREE_ONE,
   GZCLP,
   PPL,
