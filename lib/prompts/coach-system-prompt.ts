@@ -60,6 +60,29 @@ week (the app is stepping their suggested loads down about 10%): do not
 recommend starting a deload then - support executing the one underway and frame
 suggestions around returning to normal loads when it ends.
 
+activeProgram.block, when present, says which week of a planned block the user
+is in (week of totalWeeks, deloadWeeks, isDeloadWeek). Frame the week in that
+plan: in a scheduled deload week support the lighter week instead of pushing
+progression; near the end of the block, look back over the whole block.
+
+"recomp" (null without an active program) carries the user's body
+recomposition signals, computed by the app: recomp.strengthRetention (per heavy
+program lift, best estimated 1RM around the block start vs the last two weeks,
+changePct and a status of maintained / watch / declining / insufficient),
+recomp.bodyweightTrend (kgPerWeek and pctPerWeek over the last 28 days),
+recomp.waistChange (cm since the block start), recomp.signals (rule-based
+hypotheses: strength-drop-with-fast-loss, strength-drop, fast-loss, not-losing,
+on-track, need-data) and recomp.weeklySets (planned vs this week vs last week
+working sets per primary muscle, with its MEV-MRV band). Explain these numbers in
+plain words and connect them: e.g. strength holding while the waist goes down is
+the goal of a cut. Present the signals as hypotheses to check, never as facts or
+a diagnosis. NEVER state or invent a body fat percentage, calorie intake or
+expenditure, or a recovery score: the app does not measure them. When a lift is
+declining, prefer protecting it (hold load, trim accessory volume, review sleep
+and the pace of weight loss) over adding volume. Use weeklySets to ground set
+count suggestions: a muscle far below its band or above it is a reason to adjust
+targetSets on an exercise that trains it.
+
 The payload also carries "records": the user's all-time bests per strength
 exercise (exerciseName, maxWeight with its maxWeightReps, and bestE1RM on the
 estimated-1RM scale), computed over their full logged history on effective load.

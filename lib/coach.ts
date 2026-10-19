@@ -24,6 +24,7 @@ import {
 } from '@/lib/deload';
 import { programWeekInfo } from '@/lib/program-weeks';
 import { COACH_SYSTEM_PROMPT } from '@/lib/prompts/coach-system-prompt';
+import { fetchRecompSummary, type RecompSummary } from '@/lib/recomp-summary';
 import { exerciseRecords, type ExerciseRecord } from '@/lib/records';
 import { getLlmProvider } from '@/lib/llm';
 
@@ -54,6 +55,11 @@ export interface CoachPayload {
   weekCurrent: WeekSummary;
   weekPrevious: WeekSummary | null;
   activeProgram: ProgramSummary | null;
+  // Recomp monitor (lib/recomp-summary.ts): strength retention on the
+  // program's heavy compounds, bodyweight slope, waist change, rule-based
+  // hypotheses and planned vs logged weekly sets per muscle. The same numbers
+  // the progress page shows. Null without an active program.
+  recomp: RecompSummary | null;
   // Latest pre-session readiness / soreness check-in (issue #38), when the user
   // filled one in recently. Input signal for recovery-anchored auto-regulation;
   // null when there is no recent check-in. The coach reasons over this but its
@@ -372,6 +378,7 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
     records,
     catalog,
     recentSets,
+    recomp,
   ] = await Promise.all([
     weekSummary(userId, currentWeekStart, addDays(currentWeekStart, 7), bodyweight),
     weekSummary(userId, previousWeekStart, currentWeekStart, bodyweight),
@@ -411,6 +418,7 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
         session: { select: { startedAt: true } },
       },
     }),
+    fetchRecompSummary(userId, bodyweight, now),
   ]);
 
   // Conditioning aggregates (issue #145): the shared weeklyConditioning
@@ -530,6 +538,7 @@ export async function buildCoachPayload(userId: string): Promise<CoachPayload> {
     weekCurrent: currentWeek,
     weekPrevious: previousWeek.sessions.length === 0 ? null : previousWeek,
     activeProgram,
+    recomp,
     latestReadiness,
     goals,
     fatigue: {

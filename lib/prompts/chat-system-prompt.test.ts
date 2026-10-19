@@ -79,3 +79,11 @@ describe('chat system prompt', () => {
     expect(CHAT_SYSTEM_PROMPT).toMatch(/Do not claim you have created anything/i);
   });
 });
+
+describe('chat system prompt - recomp block', () => {
+  it('explains the recomp section as hypotheses and forbids invented body metrics', () => {
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/recomp section/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/hypotheses to check, never as facts/);
+    expect(CHAT_SYSTEM_PROMPT).toMatch(/NEVER state or invent a body fat percentage/);
+  });
+});
