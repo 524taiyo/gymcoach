@@ -1,5 +1,9 @@
 export const dashboard = {
   // Today's menu: the default path through the app.
+  blockWeek: 'Week {week} / {total}',
+  blockFinished: '{total}-week block done',
+  deloadWeek: 'Deload week',
+  overBudget: 'About {minutes} min is over your {budget} min budget',
   coachBuilt: 'Built by your coach',
   workoutMeta:
     '{count, plural, one {# exercise} other {# exercises}} · about {minutes} min',

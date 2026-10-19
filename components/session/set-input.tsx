@@ -687,6 +687,7 @@ function computeInitial(
         readiness,
         deloadActive,
         loadConstraints,
+        { rirAware: true },
       );
       weight = ordinary.weight ?? lastPerf.maxWeight;
       if (returnRecommendation.weightCeiling != null && weight > returnRecommendation.weightCeiling) {
@@ -716,9 +717,12 @@ function computeInitial(
       readiness,
       deloadActive,
       loadConstraints,
+      { rirAware: true },
     );
     const initialReps =
-      suggestion.reason === 'progression' ? pe.targetRepsMin : lastPerf.repsAtMaxWeight;
+      suggestion.reason === 'progression' || suggestion.reason === 'rir-reduce'
+        ? pe.targetRepsMin
+        : lastPerf.repsAtMaxWeight;
     return {
       weight: suggestion.weight ?? lastPerf.maxWeight,
       reps: initialReps,

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { programWeekInfo } from '@/lib/program-weeks';
 import { ProgramEditDialog } from '@/components/programs/program-edit-dialog';
 import { ProgramDeleteButton } from '@/components/programs/program-delete-button';
 import { WorkoutCard } from '@/components/programs/workout-card';
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export function ProgramDetailView({ program, catalog, openAddSession = false }: Props) {
+  const block = programWeekInfo(program, new Date());
   const t = useTranslations('programs');
   const common = useTranslations('common');
   const trainingName = useTrainingName();
@@ -77,6 +79,19 @@ export function ProgramDetailView({ program, catalog, openAddSession = false }: 
               <CardDescription className="mt-1 flex flex-wrap items-center gap-2">
                 <span>{program.phase}</span>
                 {program.isActive && <Badge>{t('active')}</Badge>}
+                {block && (
+                  <Badge variant={block.isDeloadWeek ? 'default' : 'secondary'}>
+                    {block.finished
+                      ? t('schedule.summaryFinished', { total: block.totalWeeks })
+                      : t('schedule.summary', { week: block.week, total: block.totalWeeks })}
+                  </Badge>
+                )}
+                {program.deloadWeeks.length > 0 && (
+                  <span>{t('schedule.deloads', { weeks: program.deloadWeeks.join(', ') })}</span>
+                )}
+                {program.sessionBudgetMin != null && (
+                  <span>{t('schedule.budget', { minutes: program.sessionBudgetMin })}</span>
+                )}
               </CardDescription>
               {program.description && (
                 <p className="mt-2 text-sm text-muted-foreground">{program.description}</p>

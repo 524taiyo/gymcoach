@@ -181,6 +181,8 @@ export const session = {
     suggestionHelp: 'How the suggestion is calculated',
     notes: 'Notes / mind-muscle cue',
     readiness: {
+      rirHeld: 'Held - last sets were harder than planned',
+      rirLighter: 'Lighter - last sets missed the range at failure',
       planned: 'Lighter - planned deload week',
       sorenessLighter: 'Lighter - reported soreness',
       sorenessHeld: 'Held - reported soreness',
@@ -194,6 +196,8 @@ export const session = {
         'Recovery is low, so the load stays at {weight} today. Push the reps, not the weight.',
       readinessDeload:
         'Recovery is very low, so the load steps down from {weight} for a lighter session.',
+      rirHold: 'Your sets at {weight} reached the top of the range but with less reserve than prescribed, so the load is held. Add weight once the target RIR feels right.',
+      rirReduce: 'A set at {weight} fell below {reps} reps at failure, so the load is about 5% lighter to land back in the range.',
       plannedDeload:
         'This is a planned deload week, so the load is about 10% lighter than {weight}.',
       hold: 'Keep the same load and beat your reps. Increase after all sets reach {reps} reps.',

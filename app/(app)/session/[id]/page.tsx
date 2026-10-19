@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { getLastPerformances, type LastPerformance } from '@/lib/last-performance';
 import { READINESS_RECENCY_HOURS, type ReadinessSignal } from '@/lib/progression';
-import { isDeloadActive } from '@/lib/deload';
+import { isPlannedDeloadNow } from '@/lib/program-weeks';
 import { getReturnToTrainingRecommendations } from '@/lib/return-to-training-history';
 import { SessionRunner, type SerializedLastPerformance } from '@/components/session/session-runner';
 import { liveSessionGymInclude } from '@/lib/session-gym-selection';
@@ -29,6 +29,7 @@ export default async function SessionRunPage(props: Props) {
         },
       },
       sets: { orderBy: [{ exerciseId: 'asc' }, { setNumber: 'asc' }] },
+      program: { select: { startDate: true, durationWeeks: true, deloadWeeks: true } },
       gym: { include: liveSessionGymInclude },
     },
   });
@@ -73,7 +74,12 @@ export default async function SessionRunPage(props: Props) {
   const readiness = buildReadinessSignal(latestCheckin);
   // Planned deload week (issue #112): resolved against the clock here so the
   // client never reasons about dates; an expired deloadUntil has no effect.
-  const deloadActive = isDeloadActive(user?.deloadUntil ?? null, new Date());
+  // A deload week scheduled on the session's program block counts too.
+  const deloadActive = isPlannedDeloadNow(
+    user?.deloadUntil ?? null,
+    session.program,
+    session.startedAt,
+  );
 
   return (
     <SessionRunner

@@ -11,6 +11,12 @@ import {
   TrainingGoal,
   WeightUnit,
 } from '@/lib/prisma-client';
+import {
+  MAX_PROGRAM_WEEKS,
+  MAX_SESSION_BUDGET_MIN,
+  MIN_SESSION_BUDGET_MIN,
+  normalizeDeloadWeeks,
+} from '@/lib/schemas/program';
 import { db } from '@/lib/db';
 import { ApiError, handleApiError, parseJsonBody, requireApiUserId } from '@/lib/api';
 import {
@@ -230,6 +236,9 @@ export async function GET() {
         isActive: p.isActive,
         startDate: p.startDate.toISOString(),
         endDate: p.endDate?.toISOString() ?? null,
+        durationWeeks: p.durationWeeks,
+        deloadWeeks: p.deloadWeeks,
+        sessionBudgetMin: p.sessionBudgetMin,
         workouts: p.workouts.map((w) => ({
           name: w.name,
           dayOfWeek: w.dayOfWeek,
@@ -390,6 +399,19 @@ const importSchema = z.object({
         isActive: z.boolean(),
         startDate: dateString,
         endDate: dateString.nullable().optional(),
+        // Block schedule (optional so older backups still restore).
+        durationWeeks: z.number().int().min(1).max(MAX_PROGRAM_WEEKS).nullable().optional(),
+        deloadWeeks: z
+          .array(z.number().int().min(1).max(MAX_PROGRAM_WEEKS))
+          .max(MAX_PROGRAM_WEEKS)
+          .optional(),
+        sessionBudgetMin: z
+          .number()
+          .int()
+          .min(MIN_SESSION_BUDGET_MIN)
+          .max(MAX_SESSION_BUDGET_MIN)
+          .nullable()
+          .optional(),
         workouts: z
           .array(
             z.object({
@@ -785,6 +807,9 @@ export async function POST(req: Request) {
               isActive: p.isActive,
               startDate: new Date(p.startDate),
               endDate: p.endDate ? new Date(p.endDate) : null,
+              durationWeeks: p.durationWeeks ?? null,
+              deloadWeeks: normalizeDeloadWeeks(p.deloadWeeks) ?? [],
+              sessionBudgetMin: p.sessionBudgetMin ?? null,
             },
           });
           for (const w of p.workouts) {

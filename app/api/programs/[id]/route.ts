@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { programInputSchema } from '@/lib/schemas/program';
+import { dayToStartDate, normalizeDeloadWeeks, programInputSchema } from '@/lib/schemas/program';
 import { ApiError, handleApiError, parseJsonBody, requireApiUserId } from '@/lib/api';
 
 interface Params {
@@ -47,6 +47,12 @@ export async function PUT(req: Request, props: Params) {
         name: data.name,
         phase: data.phase,
         description: data.description ?? null,
+        ...(data.startDate !== undefined ? { startDate: dayToStartDate(data.startDate) } : {}),
+        ...(data.durationWeeks !== undefined ? { durationWeeks: data.durationWeeks } : {}),
+        ...(data.deloadWeeks !== undefined
+          ? { deloadWeeks: normalizeDeloadWeeks(data.deloadWeeks) }
+          : {}),
+        ...(data.sessionBudgetMin !== undefined ? { sessionBudgetMin: data.sessionBudgetMin } : {}),
       },
     });
     return NextResponse.json(program);

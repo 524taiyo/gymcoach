@@ -73,6 +73,7 @@ export function ExerciseCard({
     readiness,
     deloadActive,
     loadConstraints,
+    { rirAware: true },
   );
   const groupSoreness = readiness?.soreness?.[exo.muscleGroup];
   const sorenessHigh =
@@ -84,7 +85,11 @@ export function ExerciseCard({
         ? t(sorenessHigh ? 'readiness.sorenessLighter' : 'readiness.readinessLighter')
         : suggestion.reason === 'readiness-hold'
           ? t(sorenessHigh ? 'readiness.sorenessHeld' : 'readiness.readinessHeld')
-          : null;
+          : suggestion.reason === 'rir-hold'
+            ? t('readiness.rirHeld')
+            : suggestion.reason === 'rir-reduce'
+              ? t('readiness.rirLighter')
+              : null;
   const working = formatWeight(suggestion.workingWeight ?? 0, unit, {
     decimals: 2,
     group: false,
@@ -107,7 +112,11 @@ export function ExerciseCard({
           ? t('help.readinessDeload', { weight: working })
           : suggestion.reason === 'planned-deload'
             ? t('help.plannedDeload', { weight: working })
-            : t('help.hold', {
+            : suggestion.reason === 'rir-hold'
+              ? t('help.rirHold', { weight: working })
+              : suggestion.reason === 'rir-reduce'
+                ? t('help.rirReduce', { weight: working, reps: programExercise.targetRepsMin })
+                : t('help.hold', {
                 reps: suggestion.targetRepsMax ?? programExercise.targetRepsMax,
               });
   const lastDate = lastPerformance

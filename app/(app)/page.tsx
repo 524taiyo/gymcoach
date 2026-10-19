@@ -10,6 +10,7 @@ import { requireSession } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { estimateWorkoutMinutes, pickTodayWorkout } from '@/lib/today-workout';
+import { programWeekInfo } from '@/lib/program-weeks';
 import { getTrainingDisplayName } from '@/i18n/training-names';
 
 const RECENT_SESSION_COUNT = 3;
@@ -152,6 +153,8 @@ export default async function DashboardPage() {
               exerciseCount={todayWorkoutRow.exercises.length}
               minutes={estimateWorkoutMinutes(todayWorkoutRow.exercises)}
               gymId={user?.activeGymId ?? null}
+              block={programWeekInfo(activeProgram, new Date())}
+              budgetMin={activeProgram.sessionBudgetMin}
             />
             {/* The readiness check-in and the other workouts of the week stay
                 one tap away, since home no longer lists them. */}

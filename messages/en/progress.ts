@@ -86,7 +86,38 @@ export const progress = {
     description:
       'Weekly cardio minutes versus the {target} min/week guideline. Distance and sessions appear in the tooltip.',
   },
+  recomp: {
+    title: 'Recomp check',
+    description: 'Whether strength is holding while you cut, next to your bodyweight and waist trend.',
+    strengthTitle: 'Strength on main lifts (estimated 1RM)',
+    noAnchors: 'The active program has no heavy compound (top of range 6 or fewer reps).',
+    strengthNote: 'Baseline: best within 2 weeks of the block start. Recent: best of the last 2 weeks. Deload weeks excluded. Estimated 1RM has error.',
+    bodyweightTitle: 'Bodyweight change (last 4 weeks)',
+    perWeek: '{value}/week ({pct}%/week)',
+    bodyweightNeedData: 'Needs 3+ entries over 7+ days',
+    waistTitle: 'Waist change',
+    waistDelta: '{delta} cm ({days} days)',
+    waistNeedData: 'Needs 2+ measurements since the block start',
+    hypothesisTitle: 'Possible explanations (hypotheses)',
+    disclaimer: 'Hypotheses derived mechanically from your logs. Body fat, calories and recovery are not estimated.',
+    status: {
+      maintained: 'Held',
+      watch: 'Watch',
+      declining: 'Declining',
+      insufficient: 'Not enough data',
+    },
+    signals: {
+      'strength-drop-with-fast-loss': 'Weight is dropping faster than 1% a week and strength is falling. The cut may be too aggressive; the deficit may be worth revisiting.',
+      'strength-drop': 'Strength is falling without a fast weight drop. Sleep, fatigue or too much volume may be the cause.',
+      'fast-loss': 'Weight is dropping faster than 1% a week. Strength is holding, but the pace may be fast for keeping muscle.',
+      'not-losing': 'Weight and waist have barely moved for 3+ weeks. Intake may be close to maintenance.',
+      'on-track': 'Weight or waist is going down while strength holds. On track.',
+      'need-data': 'Not enough data yet. Log bodyweight (3+ times a week) and waist (weekly), and keep training for 2+ weeks.',
+    },
+  },
   deload: {
+    scheduledTitle: 'Week {week}: planned deload',
+    scheduledDescription: 'Load suggestions are about 10% lighter until {date}. Also do one fewer set per exercise this week.',
     activeTitle: 'Deload week in progress',
     activeDescription:
       'Until {date}, load suggestions are about 10% lighter. Normal progression resumes automatically afterwards.',

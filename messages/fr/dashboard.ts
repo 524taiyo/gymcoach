@@ -2,6 +2,10 @@ import { dashboard as english } from '../en/dashboard';
 import type { MessageShape } from '@/i18n/message-types';
 
 export const dashboard = {
+  blockWeek: 'Semaine {week} / {total}',
+  blockFinished: 'Bloc de {total} semaines terminé',
+  deloadWeek: 'Semaine de décharge',
+  overBudget: 'Environ {minutes} min, au-delà de votre budget de {budget} min',
   coachBuilt: 'Composé par votre coach',
   workoutMeta:
     '{count, plural, one {# exercice} other {# exercices}} · environ {minutes} min',

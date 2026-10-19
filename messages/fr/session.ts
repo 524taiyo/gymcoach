@@ -187,6 +187,8 @@ export const session = {
     suggestionHelp: 'Comment la suggestion est calculée',
     notes: 'Notes / consigne de ressenti',
     readiness: {
+      rirHeld: 'Maintenu - séries plus dures que prévu',
+      rirLighter: 'Allégé - séries sous la fourchette à l’échec',
       planned: 'Allégé - semaine de décharge planifiée',
       sorenessLighter: 'Allégé - courbatures signalées',
       sorenessHeld: 'Maintenu - courbatures signalées',
@@ -200,6 +202,8 @@ export const session = {
         'La récupération est basse, la charge reste donc à {weight} aujourd’hui. Poussez les reps, pas la charge.',
       readinessDeload:
         'La récupération est très basse, la charge descend donc sous {weight} pour une séance plus légère.',
+      rirHold: 'Vos séries à {weight} ont atteint le haut de la fourchette mais avec moins de réserve que prévu : la charge est maintenue. Augmentez quand le RIR cible est respecté.',
+      rirReduce: 'Une série à {weight} est passée sous {reps} reps à l’échec : la charge est environ 5 % plus légère pour revenir dans la fourchette.',
       plannedDeload:
         'C’est une semaine de décharge planifiée, la charge est donc environ 10 % plus légère que {weight}.',
       hold: 'Gardez la même charge et battez vos reps. Augmentez quand toutes les séries atteignent {reps} reps.',

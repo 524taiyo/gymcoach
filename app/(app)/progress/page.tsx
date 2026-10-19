@@ -13,11 +13,22 @@ import {
 import {
   DELOAD_READINESS_LOOKBACK,
   DELOAD_READINESS_MAX_AGE_DAYS,
-  isDeloadActive,
   recommendDeload,
+  isDeloadActive,
 } from '@/lib/deload';
 import { ProgressDashboard } from '@/components/progress/progress-dashboard';
 import { ConsistencyCard } from '@/components/progress/consistency-card';
+import { plannedDeloadEnd, programWeekInfo } from '@/lib/program-weeks';
+import {
+  ANCHOR_MAX_REPS,
+  anchorRetention,
+  bodyweightTrend,
+  recompSignals,
+  waistChange,
+} from '@/lib/recomp';
+import { RecompCard } from '@/components/progress/recomp-card';
+import { MeasurementsCard } from '@/components/progress/measurements-card';
+import { PhotosCard } from '@/components/progress/photos-card';
 import { DeloadBanner } from '@/components/progress/deload-banner';
 import { BodyweightCard } from '@/components/progress/bodyweight-card';
 import { SectionTabs } from '@/components/shared/section-tabs';
@@ -52,10 +63,13 @@ export default async function ProgressPage(
   const [
     exercisesWithSets,
     user,
+    activeSchedule,
     finishedSessions,
     windowSets,
     recentCheckins,
     bodyweightEntries,
+    bodyMeasurements,
+    progressPhotos,
   ] = await Promise.all([
     // All exercises with at least one non-warmup set in the period.
     db.exercise.findMany({
@@ -76,6 +90,29 @@ export default async function ProgressPage(
     db.user.findUnique({
       where: { id: auth.userId },
       select: { bodyweight: true, unit: true, weeklyFrequency: true, deloadUntil: true },
+    }),
+    db.program.findFirst({
+      where: { userId: auth.userId, isActive: true },
+      select: {
+        startDate: true,
+        durationWeeks: true,
+        deloadWeeks: true,
+        // Heavy compounds of the program = strength anchors for the recomp card.
+        workouts: {
+          select: {
+            exercises: {
+              where: {
+                targetRepsMax: { lte: ANCHOR_MAX_REPS },
+                exercise: { category: 'COMPOUND' },
+              },
+              orderBy: { order: 'asc' },
+              select: {
+                exercise: { select: { id: true, name: true, usesBodyweight: true } },
+              },
+            },
+          },
+        },
+      },
     }),
     // Finished sessions over the window, for the consistency card.
     db.session.findMany({
@@ -119,6 +156,19 @@ export default async function ProgressPage(
       where: { userId: auth.userId, measuredAt: { gte: since } },
       orderBy: { measuredAt: 'desc' },
       select: { id: true, weightKg: true, measuredAt: true },
+    }),
+    // Tape measurements (waist trend for the recomp card + measurements card).
+    db.bodyMeasurement.findMany({
+      where: { userId: auth.userId, measuredAt: { gte: since } },
+      orderBy: { measuredAt: 'desc' },
+      select: { id: true, site: true, valueCm: true, measuredAt: true },
+    }),
+    // Every progress photo (a before/after compare wants the full timeline);
+    // only metadata, the bytes stay behind the ownership-scoped route.
+    db.progressPhoto.findMany({
+      where: { userId: auth.userId },
+      orderBy: { takenAt: 'desc' },
+      select: { id: true, takenAt: true, note: true },
     }),
   ]);
   const bodyweight = user?.bodyweight ?? null;
@@ -238,8 +288,55 @@ export default async function ProgressPage(
     recentReadiness: recentCheckins.map((c) => c.readiness),
   });
 
-  const deloadActive = isDeloadActive(user?.deloadUntil ?? null, new Date());
-  const deloadUntilIso = deloadActive ? user!.deloadUntil!.toISOString() : null;
+  // The one-tap deload or a deload week scheduled on the active program.
+  const now = new Date();
+  const deloadUntilIso =
+    plannedDeloadEnd(user?.deloadUntil ?? null, activeSchedule, now)?.toISOString() ?? null;
+  const deloadActive = deloadUntilIso != null;
+  const manualDeloadActive = isDeloadActive(user?.deloadUntil ?? null, now);
+  const blockWeek = programWeekInfo(activeSchedule, now);
+
+  // Recomp monitor (lib/recomp.ts): strength retention on the program's heavy
+  // compounds next to the bodyweight and waist trend. Sessions inside a
+  // scheduled deload week are lowered on purpose, so they are left out.
+  const anchorExercises = new Map<string, { name: string; usesBodyweight: boolean }>();
+  for (const w of activeSchedule?.workouts ?? []) {
+    for (const pe of w.exercises) anchorExercises.set(pe.exercise.id, pe.exercise);
+  }
+  const blockStart = activeSchedule?.durationWeeks != null ? activeSchedule.startDate : null;
+  const anchors = [...anchorExercises].map(([id, exo]) =>
+    anchorRetention(
+      {
+        exerciseName: exo.name,
+        points: exerciseProgress(
+          applyBodyweight(
+            (setsByExerciseId.get(id) ?? []).map((s) => ({
+              weight: s.weight,
+              reps: s.reps,
+              isWarmup: s.isWarmup,
+              durationSec: s.durationSec,
+              sessionId: s.sessionId,
+              sessionStartedAt: s.session.startedAt,
+              usesBodyweight: exo.usesBodyweight,
+            })),
+            bodyweight,
+          ),
+        ).map((p) => ({ date: p.sessionStartedAt, e1RM: p.estimated1RM })),
+      },
+      {
+        blockStart,
+        windowStart: since,
+        now,
+        isExcluded: (date) => programWeekInfo(activeSchedule, date)?.isDeloadWeek ?? false,
+      },
+    ),
+  );
+  const bodyweightTrendValue = bodyweightTrend(bodyweightEntries, now);
+  const waist = waistChange(
+    bodyMeasurements.filter((m) => m.site === 'WAIST'),
+    blockStart ?? since,
+  );
+  const signals = recompSignals({ anchors, bodyweight: bodyweightTrendValue, waist });
 
   return (
     <main className="flex-1 px-4 py-6">
@@ -264,6 +361,34 @@ export default async function ProgressPage(
           unit={unit}
         />
 
+        {activeSchedule && (
+          <RecompCard
+            anchors={anchors}
+            bodyweight={bodyweightTrendValue}
+            waist={waist}
+            signals={signals}
+            unit={unit}
+          />
+        )}
+
+        <MeasurementsCard
+          entries={bodyMeasurements.map((e) => ({
+            id: e.id,
+            site: e.site,
+            valueCm: e.valueCm,
+            measuredAt: e.measuredAt.toISOString(),
+          }))}
+          unit={unit}
+        />
+
+        <PhotosCard
+          photos={progressPhotos.map((p) => ({
+            id: p.id,
+            takenAt: p.takenAt.toISOString(),
+            note: p.note,
+          }))}
+        />
+
         {exercisesWithSets.length === 0 ? (
           <EmptyState
             illustration="progress"
@@ -274,7 +399,12 @@ export default async function ProgressPage(
         ) : (
           <>
             {(deload.recommended || deloadActive) && (
-              <DeloadBanner reasons={deload.reasons} deloadUntil={deloadUntilIso} />
+              <DeloadBanner
+                reasons={deload.reasons}
+                deloadUntil={deloadUntilIso}
+                scheduledWeek={blockWeek?.isDeloadWeek ? blockWeek.week : null}
+                canEnd={manualDeloadActive}
+              />
             )}
             <ConsistencyCard
               weeks={consistency.weeks}
